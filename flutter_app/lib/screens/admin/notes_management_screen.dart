@@ -304,8 +304,8 @@ class _NotesManagementScreenState extends State<NotesManagementScreen> {
                       'subcategory': _selectedSubcategory!,
                     };
                     
-                    // Call the simple upload API
-                    await _adminService.uploadSimpleNote(noteData);
+                    // Call the upload API
+                    await _adminService.uploadNote(noteData);
                     
                     Navigator.pop(context);
                     ScaffoldMessenger.of(context).showSnackBar(

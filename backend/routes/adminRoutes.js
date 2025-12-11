@@ -194,32 +194,11 @@ router.post('/notes/simple', async (req, res) => {
 });
 
 // @route   POST /api/admin/notes
-// @desc    Upload new note to Cloudinary
+// @desc    Upload new note
 // @access  Private (Admin)
-router.post('/notes', cloudinaryUpload.fields([
-    { name: 'notesFile', maxCount: 1 },
-    { name: 'coverImage', maxCount: 1 }
-]), async (req, res) => {
+router.post('/notes', async (req, res) => {
     try {
         const { title, subject, unit, category, subcategory } = req.body;
-
-        let notesFileUrl = '';
-        let coverImageUrl = '';
-
-        // Upload files to Cloudinary
-        if (req.files?.notesFile) {
-            const result = await uploadToCloudinary(req.files.notesFile[0].buffer, {
-                public_id: `notes/${subject}_unit${unit}_${Date.now()}`
-            });
-            notesFileUrl = result.secure_url;
-        }
-
-        if (req.files?.coverImage) {
-            const result = await uploadToCloudinary(req.files.coverImage[0].buffer, {
-                public_id: `covers/${subject}_unit${unit}_cover_${Date.now()}`
-            });
-            coverImageUrl = result.secure_url;
-        }
 
         const noteData = {
             title,
@@ -227,8 +206,8 @@ router.post('/notes', cloudinaryUpload.fields([
             unit: parseInt(unit) || 1,
             category,
             subcategory,
-            notesFileUrl,
-            coverImageUrl,
+            notesFileUrl: '',
+            coverImageUrl: '',
             uploadedBy: req.user.id
         };
 
@@ -236,10 +215,11 @@ router.post('/notes', cloudinaryUpload.fields([
 
         res.status(201).json({
             success: true,
-            message: 'Note uploaded successfully to Cloudinary',
+            message: 'Note uploaded successfully',
             note
         });
     } catch (error) {
+        console.error('Note upload error:', error);
         res.status(500).json({
             success: false,
             message: 'Error uploading note',

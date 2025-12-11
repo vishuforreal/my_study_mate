@@ -148,7 +148,7 @@ class AdminService {
 
   Future<void> uploadNote(Map<String, dynamic> noteData) async {
     try {
-      await _apiService.postMultipart('/admin/notes', noteData);
+      await _apiService.post('/admin/notes', body: noteData);
     } catch (e) {
       rethrow;
     }
