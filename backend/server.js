@@ -54,12 +54,13 @@ app.get('/', (req, res) => {
         success: true,
         message: 'My Study Mate API Server',
         version: '1.0.0',
-        endpoints: {
-            auth: '/api/auth',
-            student: '/api/student',
-            admin: '/api/admin'
-        }
+        status: 'running',
+        timestamp: new Date().toISOString()
     });
+});
+
+app.get('/health', (req, res) => {
+    res.json({ status: 'OK', timestamp: new Date().toISOString() });
 });
 
 // API Routes
@@ -128,14 +129,16 @@ const createSuperAdmin = async () => {
 
 // ============ START SERVER ============
 
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 8080;
 
-connectDB().then(() => {
-    app.listen(PORT, () => {
-        console.log(`Server running on port ${PORT}`);
-        console.log(`API URL: http://localhost:${PORT}`);
-    });
+// Start server immediately
+app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+    console.log(`API URL: http://localhost:${PORT}`);
 });
+
+// Connect to database in background
+connectDB();
 
 // Handle unhandled promise rejections
 process.on('unhandledRejection', (err) => {
