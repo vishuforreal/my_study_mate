@@ -3,6 +3,9 @@ import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/theme_provider.dart';
 import '../../config/constants.dart';
+import 'student_management_screen.dart';
+import 'analytics_screen.dart';
+import 'create_admin_screen.dart';
 
 class AdminHomeScreen extends StatefulWidget {
   const AdminHomeScreen({super.key});
@@ -108,8 +111,9 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                   icon: Icons.people_outlined,
                   color: Colors.blue,
                   onTap: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Student Management - Coming soon')),
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const StudentManagementScreen()),
                     );
                   },
                 ),
@@ -148,8 +152,9 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                   icon: Icons.analytics_outlined,
                   color: Colors.teal,
                   onTap: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Analytics - Coming soon')),
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const AnalyticsScreen()),
                     );
                   },
                 ),
@@ -159,8 +164,9 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                     icon: Icons.person_add_outlined,
                     color: Colors.red,
                     onTap: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Create Admin - Coming soon')),
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => const CreateAdminScreen()),
                       );
                     },
                   ),
