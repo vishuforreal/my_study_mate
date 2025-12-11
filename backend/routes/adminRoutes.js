@@ -1,0 +1,680 @@
+const express = require('express');
+const router = express.Router();
+const { protect, authorize } = require('../middleware/authMiddleware');
+const upload = require('../middleware/uploadMiddleware');
+const User = require('../models/User');
+const Note = require('../models/Note');
+const Book = require('../models/Book');
+const Test = require('../models/Test');
+const PPT = require('../models/PPT');
+const Project = require('../models/Project');
+const Assignment = require('../models/Assignment');
+
+// All routes require admin or superadmin role
+router.use(protect);
+router.use(authorize('admin', 'superadmin'));
+
+// ============ STUDENT MANAGEMENT ============
+
+// @route   GET /api/admin/students
+// @desc    Get all students
+// @access  Private (Admin)
+router.get('/students', async (req, res) => {
+    try {
+        const students = await User.find({ role: 'student' }).select('-password').sort({ createdAt: -1 });
+
+        res.status(200).json({
+            success: true,
+            count: students.length,
+            students
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: 'Error fetching students',
+            error: error.message
+        });
+    }
+});
+
+// @route   PUT /api/admin/students/:id/block
+// @desc    Block/Unblock student
+// @access  Private (Admin)
+router.put('/students/:id/block', async (req, res) => {
+    try {
+        const student = await User.findById(req.params.id);
+
+        if (!student || student.role !== 'student') {
+            return res.status(404).json({
+                success: false,
+                message: 'Student not found'
+            });
+        }
+
+        student.isBlocked = !student.isBlocked;
+        await student.save();
+
+        res.status(200).json({
+            success: true,
+            message: `Student ${student.isBlocked ? 'blocked' : 'unblocked'} successfully`,
+            student
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: 'Error updating student status',
+            error: error.message
+        });
+    }
+});
+
+// @route   PUT /api/admin/students/:id/permissions
+// @desc    Update student permissions
+// @access  Private (Admin)
+router.put('/students/:id/permissions', async (req, res) => {
+    try {
+        const { permissions } = req.body;
+
+        const student = await User.findById(req.params.id);
+
+        if (!student || student.role !== 'student') {
+            return res.status(404).json({
+                success: false,
+                message: 'Student not found'
+            });
+        }
+
+        student.permissions = { ...student.permissions, ...permissions };
+        await student.save();
+
+        res.status(200).json({
+            success: true,
+            message: 'Permissions updated successfully',
+            student
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: 'Error updating permissions',
+            error: error.message
+        });
+    }
+});
+
+// ============ NOTES MANAGEMENT ============
+
+// @route   GET /api/admin/notes
+// @desc    Get all notes
+// @access  Private (Admin)
+router.get('/notes', async (req, res) => {
+    try {
+        const notes = await Note.find().populate('uploadedBy', 'name email').sort({ createdAt: -1 });
+
+        res.status(200).json({
+            success: true,
+            count: notes.length,
+            notes
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: 'Error fetching notes',
+            error: error.message
+        });
+    }
+});
+
+// @route   POST /api/admin/notes
+// @desc    Upload new note
+// @access  Private (Admin)
+router.post('/notes', upload.fields([
+    { name: 'notesFile', maxCount: 1 },
+    { name: 'questionsFile', maxCount: 1 },
+    { name: 'answersFile', maxCount: 1 }
+]), async (req, res) => {
+    try {
+        const { title, description, category, course, subject, unit, chapter, isPaid, price } = req.body;
+
+        if (!req.files || !req.files.notesFile) {
+            return res.status(400).json({
+                success: false,
+                message: 'Please upload notes file'
+            });
+        }
+
+        const noteData = {
+            title,
+            description,
+            category,
+            course,
+            subject,
+            unit,
+            chapter,
+            notesFileUrl: `/uploads/${req.files.notesFile[0].filename}`,
+            questionsFileUrl: req.files.questionsFile ? `/uploads/${req.files.questionsFile[0].filename}` : '',
+            answersFileUrl: req.files.answersFile ? `/uploads/${req.files.answersFile[0].filename}` : '',
+            isPaid: isPaid === 'true',
+            price: price || 0,
+            uploadedBy: req.user.id
+        };
+
+        const note = await Note.create(noteData);
+
+        res.status(201).json({
+            success: true,
+            message: 'Note uploaded successfully',
+            note
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: 'Error uploading note',
+            error: error.message
+        });
+    }
+});
+
+// @route   PUT /api/admin/notes/:id
+// @desc    Update note
+// @access  Private (Admin)
+router.put('/notes/:id', async (req, res) => {
+    try {
+        const note = await Note.findByIdAndUpdate(
+            req.params.id,
+            req.body,
+            { new: true, runValidators: true }
+        );
+
+        if (!note) {
+            return res.status(404).json({
+                success: false,
+                message: 'Note not found'
+            });
+        }
+
+        res.status(200).json({
+            success: true,
+            message: 'Note updated successfully',
+            note
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: 'Error updating note',
+            error: error.message
+        });
+    }
+});
+
+// @route   DELETE /api/admin/notes/:id
+// @desc    Delete note
+// @access  Private (Admin)
+router.delete('/notes/:id', async (req, res) => {
+    try {
+        const note = await Note.findByIdAndDelete(req.params.id);
+
+        if (!note) {
+            return res.status(404).json({
+                success: false,
+                message: 'Note not found'
+            });
+        }
+
+        res.status(200).json({
+            success: true,
+            message: 'Note deleted successfully'
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: 'Error deleting note',
+            error: error.message
+        });
+    }
+});
+
+// ============ BOOKS MANAGEMENT ============
+
+// @route   POST /api/admin/books
+// @desc    Upload new book
+// @access  Private (Admin)
+router.post('/books', upload.fields([
+    { name: 'bookFile', maxCount: 1 },
+    { name: 'coverImage', maxCount: 1 }
+]), async (req, res) => {
+    try {
+        const { title, author, description, subject, category, course, isPaid, price } = req.body;
+
+        if (!req.files || !req.files.bookFile) {
+            return res.status(400).json({
+                success: false,
+                message: 'Please upload book file'
+            });
+        }
+
+        const bookData = {
+            title,
+            author,
+            description,
+            subject,
+            category,
+            course,
+            fileUrl: `/uploads/${req.files.bookFile[0].filename}`,
+            coverImage: req.files.coverImage ? `/uploads/${req.files.coverImage[0].filename}` : '',
+            isPaid: isPaid === 'true',
+            price: price || 0,
+            uploadedBy: req.user.id
+        };
+
+        const book = await Book.create(bookData);
+
+        res.status(201).json({
+            success: true,
+            message: 'Book uploaded successfully',
+            book
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: 'Error uploading book',
+            error: error.message
+        });
+    }
+});
+
+// @route   GET /api/admin/books
+// @desc    Get all books
+// @access  Private (Admin)
+router.get('/books', async (req, res) => {
+    try {
+        const books = await Book.find().populate('uploadedBy', 'name email').sort({ createdAt: -1 });
+
+        res.status(200).json({
+            success: true,
+            count: books.length,
+            books
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: 'Error fetching books',
+            error: error.message
+        });
+    }
+});
+
+// @route   DELETE /api/admin/books/:id
+// @desc    Delete book
+// @access  Private (Admin)
+router.delete('/books/:id', async (req, res) => {
+    try {
+        const book = await Book.findByIdAndDelete(req.params.id);
+
+        if (!book) {
+            return res.status(404).json({
+                success: false,
+                message: 'Book not found'
+            });
+        }
+
+        res.status(200).json({
+            success: true,
+            message: 'Book deleted successfully'
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: 'Error deleting book',
+            error: error.message
+        });
+    }
+});
+
+// ============ TESTS MANAGEMENT ============
+
+// @route   POST /api/admin/tests
+// @desc    Create new test
+// @access  Private (Admin)
+router.post('/tests', async (req, res) => {
+    try {
+        const testData = {
+            ...req.body,
+            uploadedBy: req.user.id
+        };
+
+        const test = await Test.create(testData);
+
+        res.status(201).json({
+            success: true,
+            message: 'Test created successfully',
+            test
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: 'Error creating test',
+            error: error.message
+        });
+    }
+});
+
+// @route   GET /api/admin/tests
+// @desc    Get all tests
+// @access  Private (Admin)
+router.get('/tests', async (req, res) => {
+    try {
+        const tests = await Test.find().populate('uploadedBy', 'name email').sort({ createdAt: -1 });
+
+        res.status(200).json({
+            success: true,
+            count: tests.length,
+            tests
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: 'Error fetching tests',
+            error: error.message
+        });
+    }
+});
+
+// @route   PUT /api/admin/tests/:id
+// @desc    Update test
+// @access  Private (Admin)
+router.put('/tests/:id', async (req, res) => {
+    try {
+        const test = await Test.findByIdAndUpdate(
+            req.params.id,
+            req.body,
+            { new: true, runValidators: true }
+        );
+
+        if (!test) {
+            return res.status(404).json({
+                success: false,
+                message: 'Test not found'
+            });
+        }
+
+        res.status(200).json({
+            success: true,
+            message: 'Test updated successfully',
+            test
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: 'Error updating test',
+            error: error.message
+        });
+    }
+});
+
+// @route   DELETE /api/admin/tests/:id
+// @desc    Delete test
+// @access  Private (Admin)
+router.delete('/tests/:id', async (req, res) => {
+    try {
+        const test = await Test.findByIdAndDelete(req.params.id);
+
+        if (!test) {
+            return res.status(404).json({
+                success: false,
+                message: 'Test not found'
+            });
+        }
+
+        res.status(200).json({
+            success: true,
+            message: 'Test deleted successfully'
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: 'Error deleting test',
+            error: error.message
+        });
+    }
+});
+
+// ============ PPTs, PROJECTS, ASSIGNMENTS ============
+// Similar CRUD operations for PPTs, Projects, and Assignments
+
+// @route   POST /api/admin/ppts
+router.post('/ppts', upload.single('pptFile'), async (req, res) => {
+    try {
+        const pptData = {
+            ...req.body,
+            fileUrl: `/uploads/${req.file.filename}`,
+            uploadedBy: req.user.id
+        };
+
+        const ppt = await PPT.create(pptData);
+
+        res.status(201).json({
+            success: true,
+            message: 'PPT uploaded successfully',
+            ppt
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: 'Error uploading PPT',
+            error: error.message
+        });
+    }
+});
+
+// @route   GET /api/admin/ppts
+router.get('/ppts', async (req, res) => {
+    try {
+        const ppts = await PPT.find().populate('uploadedBy', 'name email').sort({ createdAt: -1 });
+        res.status(200).json({ success: true, count: ppts.length, ppts });
+    } catch (error) {
+        res.status(500).json({ success: false, message: 'Error fetching PPTs', error: error.message });
+    }
+});
+
+// @route   DELETE /api/admin/ppts/:id
+router.delete('/ppts/:id', async (req, res) => {
+    try {
+        const ppt = await PPT.findByIdAndDelete(req.params.id);
+        if (!ppt) {
+            return res.status(404).json({ success: false, message: 'PPT not found' });
+        }
+        res.status(200).json({ success: true, message: 'PPT deleted successfully' });
+    } catch (error) {
+        res.status(500).json({ success: false, message: 'Error deleting PPT', error: error.message });
+    }
+});
+
+// @route   POST /api/admin/projects
+router.post('/projects', upload.single('projectFile'), async (req, res) => {
+    try {
+        const projectData = {
+            ...req.body,
+            fileUrl: `/uploads/${req.file.filename}`,
+            tags: req.body.tags ? JSON.parse(req.body.tags) : [],
+            uploadedBy: req.user.id
+        };
+
+        const project = await Project.create(projectData);
+
+        res.status(201).json({
+            success: true,
+            message: 'Project uploaded successfully',
+            project
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: 'Error uploading project',
+            error: error.message
+        });
+    }
+});
+
+// @route   GET /api/admin/projects
+router.get('/projects', async (req, res) => {
+    try {
+        const projects = await Project.find().populate('uploadedBy', 'name email').sort({ createdAt: -1 });
+        res.status(200).json({ success: true, count: projects.length, projects });
+    } catch (error) {
+        res.status(500).json({ success: false, message: 'Error fetching projects', error: error.message });
+    }
+});
+
+// @route   DELETE /api/admin/projects/:id
+router.delete('/projects/:id', async (req, res) => {
+    try {
+        const project = await Project.findByIdAndDelete(req.params.id);
+        if (!project) {
+            return res.status(404).json({ success: false, message: 'Project not found' });
+        }
+        res.status(200).json({ success: true, message: 'Project deleted successfully' });
+    } catch (error) {
+        res.status(500).json({ success: false, message: 'Error deleting project', error: error.message });
+    }
+});
+
+// @route   POST /api/admin/assignments
+router.post('/assignments', upload.fields([
+    { name: 'assignmentFile', maxCount: 1 },
+    { name: 'solutionFile', maxCount: 1 }
+]), async (req, res) => {
+    try {
+        const assignmentData = {
+            ...req.body,
+            assignmentFileUrl: `/uploads/${req.files.assignmentFile[0].filename}`,
+            solutionFileUrl: req.files.solutionFile ? `/uploads/${req.files.solutionFile[0].filename}` : '',
+            uploadedBy: req.user.id
+        };
+
+        const assignment = await Assignment.create(assignmentData);
+
+        res.status(201).json({
+            success: true,
+            message: 'Assignment created successfully',
+            assignment
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: 'Error creating assignment',
+            error: error.message
+        });
+    }
+});
+
+// @route   GET /api/admin/assignments
+router.get('/assignments', async (req, res) => {
+    try {
+        const assignments = await Assignment.find().populate('uploadedBy', 'name email').sort({ createdAt: -1 });
+        res.status(200).json({ success: true, count: assignments.length, assignments });
+    } catch (error) {
+        res.status(500).json({ success: false, message: 'Error fetching assignments', error: error.message });
+    }
+});
+
+// @route   DELETE /api/admin/assignments/:id
+router.delete('/assignments/:id', async (req, res) => {
+    try {
+        const assignment = await Assignment.findByIdAndDelete(req.params.id);
+        if (!assignment) {
+            return res.status(404).json({ success: false, message: 'Assignment not found' });
+        }
+        res.status(200).json({ success: true, message: 'Assignment deleted successfully' });
+    } catch (error) {
+        res.status(500).json({ success: false, message: 'Error deleting assignment', error: error.message });
+    }
+});
+
+// ============ ANALYTICS ============
+
+// @route   GET /api/admin/analytics
+// @desc    Get system analytics
+// @access  Private (Admin)
+router.get('/analytics', async (req, res) => {
+    try {
+        const totalStudents = await User.countDocuments({ role: 'student' });
+        const activeStudents = await User.countDocuments({ role: 'student', isBlocked: false });
+        const totalNotes = await Note.countDocuments();
+        const totalBooks = await Book.countDocuments();
+        const totalTests = await Test.countDocuments();
+        const totalPPTs = await PPT.countDocuments();
+        const totalProjects = await Project.countDocuments();
+        const totalAssignments = await Assignment.countDocuments();
+
+        res.status(200).json({
+            success: true,
+            analytics: {
+                students: {
+                    total: totalStudents,
+                    active: activeStudents,
+                    blocked: totalStudents - activeStudents
+                },
+                content: {
+                    notes: totalNotes,
+                    books: totalBooks,
+                    tests: totalTests,
+                    ppts: totalPPTs,
+                    projects: totalProjects,
+                    assignments: totalAssignments,
+                    total: totalNotes + totalBooks + totalTests + totalPPTs + totalProjects + totalAssignments
+                }
+            }
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: 'Error fetching analytics',
+            error: error.message
+        });
+    }
+});
+
+// ============ SUPER ADMIN ONLY ============
+
+// @route   POST /api/admin/create-admin
+// @desc    Create new admin (Super Admin only)
+// @access  Private (Super Admin)
+router.post('/create-admin', authorize('superadmin'), async (req, res) => {
+    try {
+        const { name, email, password } = req.body;
+
+        const userExists = await User.findOne({ email });
+        if (userExists) {
+            return res.status(400).json({
+                success: false,
+                message: 'User already exists with this email'
+            });
+        }
+
+        const admin = await User.create({
+            name,
+            email,
+            password,
+            role: 'admin'
+        });
+
+        res.status(201).json({
+            success: true,
+            message: 'Admin created successfully',
+            admin: {
+                id: admin._id,
+                name: admin.name,
+                email: admin.email,
+                role: admin.role
+            }
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: 'Error creating admin',
+            error: error.message
+        });
+    }
+});
+
+module.exports = router;
