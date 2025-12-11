@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { protect, authorize } = require('../middleware/authMiddleware');
 const upload = require('../middleware/uploadMiddleware');
+const { upload: cloudinaryUpload, uploadToCloudinary } = require('../middleware/cloudinaryUpload');
 const User = require('../models/User');
 const Note = require('../models/Note');
 const Book = require('../models/Book');
@@ -130,37 +131,49 @@ router.get('/notes', async (req, res) => {
     }
 });
 
-// @route   POST /api/admin/notes
-// @desc    Upload new note
-// @access  Private (Admin)
-router.post('/notes', upload.fields([
-    { name: 'notesFile', maxCount: 1 },
-    { name: 'questionsFile', maxCount: 1 },
-    { name: 'answersFile', maxCount: 1 }
-]), async (req, res) => {
+// @route   GET /api/admin/notes/units/:subjectName
+// @desc    Get units for a subject
+// @access  Private (Admin/Student)
+router.get('/notes/units/:subjectName', async (req, res) => {
     try {
-        const { title, description, category, course, subject, unit, chapter, isPaid, price } = req.body;
+        const units = await Note.find({ subject: req.params.subjectName })
+            .select('unit title')
+            .sort({ unit: 1 });
 
-        if (!req.files || !req.files.notesFile) {
-            return res.status(400).json({
-                success: false,
-                message: 'Please upload notes file'
-            });
-        }
+        const uniqueUnits = [...new Set(units.map(note => note.unit))]
+            .sort((a, b) => a - b)
+            .map(unit => ({
+                unit,
+                title: units.find(note => note.unit === unit)?.title || `Unit ${unit}`
+            }));
+
+        res.status(200).json({
+            success: true,
+            units: uniqueUnits
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: 'Error fetching units',
+            error: error.message
+        });
+    }
+});
+
+// @route   POST /api/admin/notes/simple
+// @desc    Simple note upload without files
+// @access  Private (Admin)
+router.post('/notes/simple', async (req, res) => {
+    try {
+        const { title, subject, unit, category, subcategory } = req.body;
 
         const noteData = {
             title,
-            description,
-            category,
-            course,
             subject,
-            unit,
-            chapter,
-            notesFileUrl: `/uploads/${req.files.notesFile[0].filename}`,
-            questionsFileUrl: req.files.questionsFile ? `/uploads/${req.files.questionsFile[0].filename}` : '',
-            answersFileUrl: req.files.answersFile ? `/uploads/${req.files.answersFile[0].filename}` : '',
-            isPaid: isPaid === 'true',
-            price: price || 0,
+            unit: parseInt(unit) || 1,
+            category,
+            subcategory,
+            notesFileUrl: '',
             uploadedBy: req.user.id
         };
 
@@ -169,6 +182,61 @@ router.post('/notes', upload.fields([
         res.status(201).json({
             success: true,
             message: 'Note uploaded successfully',
+            note
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: 'Error uploading note',
+            error: error.message
+        });
+    }
+});
+
+// @route   POST /api/admin/notes
+// @desc    Upload new note to Cloudinary
+// @access  Private (Admin)
+router.post('/notes', cloudinaryUpload.fields([
+    { name: 'notesFile', maxCount: 1 },
+    { name: 'coverImage', maxCount: 1 }
+]), async (req, res) => {
+    try {
+        const { title, subject, unit, category, subcategory } = req.body;
+
+        let notesFileUrl = '';
+        let coverImageUrl = '';
+
+        // Upload files to Cloudinary
+        if (req.files?.notesFile) {
+            const result = await uploadToCloudinary(req.files.notesFile[0].buffer, {
+                public_id: `notes/${subject}_unit${unit}_${Date.now()}`
+            });
+            notesFileUrl = result.secure_url;
+        }
+
+        if (req.files?.coverImage) {
+            const result = await uploadToCloudinary(req.files.coverImage[0].buffer, {
+                public_id: `covers/${subject}_unit${unit}_cover_${Date.now()}`
+            });
+            coverImageUrl = result.secure_url;
+        }
+
+        const noteData = {
+            title,
+            subject,
+            unit: parseInt(unit) || 1,
+            category,
+            subcategory,
+            notesFileUrl,
+            coverImageUrl,
+            uploadedBy: req.user.id
+        };
+
+        const note = await Note.create(noteData);
+
+        res.status(201).json({
+            success: true,
+            message: 'Note uploaded successfully to Cloudinary',
             note
         });
     } catch (error) {

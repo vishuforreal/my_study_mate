@@ -56,4 +56,16 @@ class SubjectService {
       rethrow;
     }
   }
+
+  Future<List<Map<String, dynamic>>> getUnitsForSubject(String subjectName) async {
+    try {
+      final response = await _apiService.get('/admin/notes/units/$subjectName');
+      if (response['success']) {
+        return List<Map<String, dynamic>>.from(response['units']);
+      }
+      return [];
+    } catch (e) {
+      rethrow;
+    }
+  }
 }

@@ -121,27 +121,59 @@ class _NotesManagementScreenState extends State<NotesManagementScreen> {
 
                       // Subject Selection
                       if (_selectedSubcategory != null) ...[
-                        Row(
+                        Column(
                           children: [
-                            Expanded(
-                              child: DropdownButtonFormField<SubjectModel>(
-                                value: _selectedSubject,
-                                decoration: const InputDecoration(labelText: 'Subject'),
-                                items: _subjects.map((subject) {
-                                  return DropdownMenuItem(
-                                    value: subject,
-                                    child: Text(subject.name),
-                                  );
-                                }).toList(),
-                                onChanged: (subject) {
-                                  setState(() => _selectedSubject = subject);
-                                },
+                            TextField(
+                              decoration: const InputDecoration(
+                                labelText: 'Search subjects',
+                                prefixIcon: Icon(Icons.search),
+                                border: OutlineInputBorder(),
                               ),
+                              onChanged: (query) {
+                                setState(() {
+                                  if (query.isEmpty) {
+                                    // Show all subjects
+                                  } else {
+                                    // Filter subjects by name
+                                  }
+                                });
+                              },
                             ),
-                            IconButton(
-                              icon: const Icon(Icons.add),
-                              onPressed: () => _showCreateSubjectDialog(),
+                            const SizedBox(height: 16),
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: DropdownButtonFormField<SubjectModel>(
+                                    value: _selectedSubject,
+                                    decoration: const InputDecoration(labelText: 'Subject'),
+                                    items: _subjects.map((subject) {
+                                      return DropdownMenuItem(
+                                        value: subject,
+                                        child: Text(subject.name),
+                                      );
+                                    }).toList(),
+                                    onChanged: (subject) {
+                                      setState(() => _selectedSubject = subject);
+                                    },
+                                  ),
+                                ),
+                                IconButton(
+                                  icon: const Icon(Icons.add),
+                                  onPressed: () => _showCreateSubjectDialog(),
+                                ),
+                                if (_selectedSubject != null)
+                                  IconButton(
+                                    icon: const Icon(Icons.delete, color: Colors.red),
+                                    onPressed: () => _deleteSubject(),
+                                  ),
+                              ],
                             ),
+                            const SizedBox(height: 16),
+                            if (_selectedSubject != null)
+                              ElevatedButton(
+                                onPressed: () => _showManageSubjectDialog(),
+                                child: const Text('Manage Subject'),
+                              ),
                           ],
                         ),
                         const SizedBox(height: 24),
@@ -202,37 +234,57 @@ class _NotesManagementScreenState extends State<NotesManagementScreen> {
 
   void _showUploadDialog() {
     final titleController = TextEditingController();
+    final unitController = TextEditingController(text: '1');
     File? coverImage;
-    int unit = 1; // Auto-increment unit
+    File? pdfFile;
 
     showDialog(
       context: context,
       builder: (context) => StatefulBuilder(
         builder: (context, setDialogState) => AlertDialog(
           title: const Text('Upload Note'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: titleController,
-                decoration: const InputDecoration(labelText: 'Title'),
-              ),
-              const SizedBox(height: 16),
-              Text('Unit: $unit'),
-              const SizedBox(height: 16),
-              ElevatedButton(
-                onPressed: () async {
-                  final ImagePicker picker = ImagePicker();
-                  final XFile? image = await picker.pickImage(source: ImageSource.gallery);
-                  if (image != null) {
-                    setDialogState(() {
-                      coverImage = File(image.path);
-                    });
-                  }
-                },
-                child: Text(coverImage == null ? 'Select Cover Image' : 'Image Selected'),
-              ),
-            ],
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  controller: titleController,
+                  decoration: const InputDecoration(labelText: 'Unit Name/Title'),
+                ),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: unitController,
+                  decoration: const InputDecoration(labelText: 'Unit Number'),
+                  keyboardType: TextInputType.number,
+                ),
+                const SizedBox(height: 16),
+                ElevatedButton(
+                  onPressed: () async {
+                    final ImagePicker picker = ImagePicker();
+                    final XFile? image = await picker.pickImage(source: ImageSource.gallery);
+                    if (image != null) {
+                      setDialogState(() {
+                        coverImage = File(image.path);
+                      });
+                    }
+                  },
+                  child: Text(coverImage == null ? 'Select Cover Image' : 'Cover Image Selected'),
+                ),
+                const SizedBox(height: 16),
+                ElevatedButton(
+                  onPressed: () async {
+                    final ImagePicker picker = ImagePicker();
+                    final XFile? file = await picker.pickImage(source: ImageSource.gallery);
+                    if (file != null) {
+                      setDialogState(() {
+                        pdfFile = File(file.path);
+                      });
+                    }
+                  },
+                  child: Text(pdfFile == null ? 'Select PDF File' : 'PDF File Selected'),
+                ),
+              ],
+            ),
           ),
           actions: [
             TextButton(
@@ -241,18 +293,110 @@ class _NotesManagementScreenState extends State<NotesManagementScreen> {
             ),
             TextButton(
               onPressed: () async {
-                if (titleController.text.isNotEmpty && coverImage != null) {
-                  // Simulate upload
-                  Navigator.pop(context);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Note uploaded successfully')),
-                  );
+                if (titleController.text.isNotEmpty && unitController.text.isNotEmpty) {
+                  try {
+                    // Create mock note data
+                    final noteData = {
+                      'title': titleController.text,
+                      'subject': _selectedSubject!.name,
+                      'unit': int.parse(unitController.text),
+                      'category': _selectedCategory!.id,
+                      'subcategory': _selectedSubcategory!,
+                    };
+                    
+                    // Call the simple upload API
+                    await _adminService.uploadSimpleNote(noteData);
+                    
+                    Navigator.pop(context);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Note uploaded successfully')),
+                    );
+                  } catch (e) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Error: $e')),
+                    );
+                  }
                 }
               },
               child: const Text('Upload'),
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  void _deleteSubject() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Delete Subject'),
+        content: Text('Are you sure you want to delete ${_selectedSubject!.name}?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () async {
+              try {
+                await _subjectService.deleteSubject(_selectedSubject!.id);
+                Navigator.pop(context);
+                setState(() {
+                  _selectedSubject = null;
+                  _subjects.removeWhere((s) => s.id == _selectedSubject!.id);
+                });
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Subject deleted successfully')),
+                );
+              } catch (e) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('Error: $e')),
+                );
+              }
+            },
+            child: const Text('Delete', style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showManageSubjectDialog() {
+    final controller = TextEditingController(text: _selectedSubject!.name);
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Manage Subject'),
+        content: TextField(
+          controller: controller,
+          decoration: const InputDecoration(labelText: 'Subject Name'),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () async {
+              if (controller.text.isNotEmpty) {
+                try {
+                  await _subjectService.updateSubject(_selectedSubject!.id, controller.text.trim());
+                  Navigator.pop(context);
+                  _loadSubjects();
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Subject updated successfully')),
+                  );
+                } catch (e) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Error: $e')),
+                  );
+                }
+              }
+            },
+            child: const Text('Update'),
+          ),
+        ],
       ),
     );
   }

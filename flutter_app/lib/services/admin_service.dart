@@ -193,4 +193,12 @@ class AdminService {
       rethrow;
     }
   }
+
+  Future<void> uploadSimpleNote(Map<String, dynamic> noteData) async {
+    try {
+      await _apiService.post('/admin/notes/simple', body: noteData);
+    } catch (e) {
+      rethrow;
+    }
+  }
 }
