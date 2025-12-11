@@ -10,6 +10,7 @@ import 'ppts_list_screen.dart';
 import 'projects_list_screen.dart';
 import 'assignments_list_screen.dart';
 import 'profile_screen.dart';
+import '../common/no_access_screen.dart';
 
 class StudentHomeScreen extends StatefulWidget {
   const StudentHomeScreen({super.key});
@@ -149,78 +150,114 @@ class StudentDashboard extends StatelessWidget {
               crossAxisSpacing: 16,
               childAspectRatio: 1.1,
               children: [
-                if (user?.permissions.canAccessNotes ?? false)
-                  _ContentCard(
-                    title: 'Notes',
-                    icon: Icons.note_outlined,
-                    color: Colors.blue,
-                    onTap: () {
+                _ContentCard(
+                  title: 'Notes',
+                  icon: Icons.note_outlined,
+                  color: Colors.blue,
+                  onTap: () {
+                    if (user?.permissions.canAccessNotes ?? false) {
                       Navigator.push(
                         context,
                         MaterialPageRoute(builder: (context) => const NotesListScreen()),
                       );
-                    },
-                  ),
-                if (user?.permissions.canAccessBooks ?? false)
-                  _ContentCard(
-                    title: 'Books',
-                    icon: Icons.menu_book_outlined,
-                    color: Colors.green,
-                    onTap: () {
+                    } else {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => const NoAccessScreen(contentType: 'Notes')),
+                      );
+                    }
+                  },
+                ),
+                _ContentCard(
+                  title: 'Books',
+                  icon: Icons.menu_book_outlined,
+                  color: Colors.green,
+                  onTap: () {
+                    if (user?.permissions.canAccessBooks ?? false) {
                       Navigator.push(
                         context,
                         MaterialPageRoute(builder: (context) => const BooksListScreen()),
                       );
-                    },
-                  ),
-                if (user?.permissions.canAccessTests ?? false)
-                  _ContentCard(
-                    title: 'Tests',
-                    icon: Icons.quiz_outlined,
-                    color: Colors.orange,
-                    onTap: () {
+                    } else {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => const NoAccessScreen(contentType: 'Books')),
+                      );
+                    }
+                  },
+                ),
+                _ContentCard(
+                  title: 'Tests',
+                  icon: Icons.quiz_outlined,
+                  color: Colors.orange,
+                  onTap: () {
+                    if (user?.permissions.canAccessTests ?? false) {
                       Navigator.push(
                         context,
                         MaterialPageRoute(builder: (context) => const TestsListScreen()),
                       );
-                    },
-                  ),
-                if (user?.permissions.canAccessPPTs ?? false)
-                  _ContentCard(
-                    title: 'PPTs',
-                    icon: Icons.slideshow_outlined,
-                    color: Colors.purple,
-                    onTap: () {
+                    } else {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => const NoAccessScreen(contentType: 'Tests')),
+                      );
+                    }
+                  },
+                ),
+                _ContentCard(
+                  title: 'PPTs',
+                  icon: Icons.slideshow_outlined,
+                  color: Colors.purple,
+                  onTap: () {
+                    if (user?.permissions.canAccessPPTs ?? false) {
                       Navigator.push(
                         context,
                         MaterialPageRoute(builder: (context) => const PPTsListScreen()),
                       );
-                    },
-                  ),
-                if (user?.permissions.canAccessProjects ?? false)
-                  _ContentCard(
-                    title: 'Projects',
-                    icon: Icons.code_outlined,
-                    color: Colors.teal,
-                    onTap: () {
+                    } else {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => const NoAccessScreen(contentType: 'PPTs')),
+                      );
+                    }
+                  },
+                ),
+                _ContentCard(
+                  title: 'Projects',
+                  icon: Icons.code_outlined,
+                  color: Colors.teal,
+                  onTap: () {
+                    if (user?.permissions.canAccessProjects ?? false) {
                       Navigator.push(
                         context,
                         MaterialPageRoute(builder: (context) => const ProjectsListScreen()),
                       );
-                    },
-                  ),
-                if (user?.permissions.canAccessAssignments ?? false)
-                  _ContentCard(
-                    title: 'Assignments',
-                    icon: Icons.assignment_outlined,
-                    color: Colors.red,
-                    onTap: () {
+                    } else {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => const NoAccessScreen(contentType: 'Projects')),
+                      );
+                    }
+                  },
+                ),
+                _ContentCard(
+                  title: 'Assignments',
+                  icon: Icons.assignment_outlined,
+                  color: Colors.red,
+                  onTap: () {
+                    if (user?.permissions.canAccessAssignments ?? false) {
                       Navigator.push(
                         context,
                         MaterialPageRoute(builder: (context) => const AssignmentsListScreen()),
                       );
-                    },
-                  ),
+                    } else {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => const NoAccessScreen(contentType: 'Assignments')),
+                      );
+                    }
+                  },
+                ),
               ],
             ),
           ],
