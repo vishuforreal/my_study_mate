@@ -75,11 +75,15 @@ const userSchema = new mongoose.Schema({
     },
     securityQuestion: {
         type: String,
-        required: [true, 'Please select a security question']
+        required: function() {
+            return this.role === 'student';
+        }
     },
     securityAnswer: {
         type: String,
-        required: [true, 'Please provide security answer'],
+        required: function() {
+            return this.role === 'student';
+        },
         select: false
     },
     lastLogin: {

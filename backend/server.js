@@ -118,7 +118,9 @@ const createSuperAdmin = async () => {
                 name: process.env.SUPER_ADMIN_NAME || 'Super Admin',
                 email: process.env.SUPER_ADMIN_EMAIL || 'admin@mystudymate.com',
                 password: process.env.SUPER_ADMIN_PASSWORD || 'admin123',
-                role: 'superadmin'
+                role: 'superadmin',
+                securityQuestion: 'What is your favorite color?',
+                securityAnswer: 'blue'
             });
             console.log('Super Admin created successfully');
             console.log(`Email: ${process.env.SUPER_ADMIN_EMAIL || 'admin@mystudymate.com'}`);
