@@ -80,7 +80,7 @@ class _StudentManagementScreenState extends State<StudentManagementScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(student.email),
-                            Text('Course: ${student.course}'),
+                            Text('Category: ${student.category}${student.subcategory != null ? ' - ${student.subcategory}' : ''}'),
                             Text('Status: ${student.isBlocked ? 'Blocked' : 'Active'}'),
                           ],
                         ),
