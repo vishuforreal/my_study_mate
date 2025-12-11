@@ -39,15 +39,19 @@ class _StudentManagementScreenState extends State<StudentManagementScreen> {
 
   Future<void> _toggleBlockStatus(UserModel student) async {
     try {
-      await _adminService.toggleStudentBlock(student.id);
-      _loadStudents();
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Student ${student.isBlocked ? 'unblocked' : 'blocked'}')),
-      );
+      final response = await _adminService.toggleStudentBlock(student.id);
+      await _loadStudents();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Student ${student.isBlocked ? 'unblocked' : 'blocked'} successfully')),
+        );
+      }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: $e')),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+        );
+      }
     }
   }
 
@@ -129,6 +133,21 @@ class _StudentManagementScreenState extends State<StudentManagementScreen> {
               value: student.permissions.canAccessTests,
               onChanged: (value) => _updatePermission(student, 'canAccessTests', value!),
             ),
+            CheckboxListTile(
+              title: const Text('PPTs'),
+              value: student.permissions.canAccessPPTs,
+              onChanged: (value) => _updatePermission(student, 'canAccessPPTs', value!),
+            ),
+            CheckboxListTile(
+              title: const Text('Projects'),
+              value: student.permissions.canAccessProjects,
+              onChanged: (value) => _updatePermission(student, 'canAccessProjects', value!),
+            ),
+            CheckboxListTile(
+              title: const Text('Assignments'),
+              value: student.permissions.canAccessAssignments,
+              onChanged: (value) => _updatePermission(student, 'canAccessAssignments', value!),
+            ),
           ],
         ),
         actions: [
@@ -144,11 +163,19 @@ class _StudentManagementScreenState extends State<StudentManagementScreen> {
   Future<void> _updatePermission(UserModel student, String permission, bool value) async {
     try {
       await _adminService.updateStudentPermissions(student.id, {permission: value});
-      _loadStudents();
+      await _loadStudents();
+      Navigator.pop(context);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Permissions updated successfully')),
+        );
+      }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: $e')),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+        );
+      }
     }
   }
 }

@@ -20,19 +20,21 @@ class AdminService {
     }
   }
 
-  Future<void> toggleStudentBlock(String studentId) async {
+  Future<Map<String, dynamic>> toggleStudentBlock(String studentId) async {
     try {
-      await _apiService.put('/admin/students/$studentId/block');
+      final response = await _apiService.put('/admin/students/$studentId/block');
+      return response;
     } catch (e) {
       rethrow;
     }
   }
 
-  Future<void> updateStudentPermissions(String studentId, Map<String, dynamic> permissions) async {
+  Future<Map<String, dynamic>> updateStudentPermissions(String studentId, Map<String, dynamic> permissions) async {
     try {
-      await _apiService.put('/admin/students/$studentId/permissions', body: {
+      final response = await _apiService.put('/admin/students/$studentId/permissions', body: {
         'permissions': permissions,
       });
+      return response;
     } catch (e) {
       rethrow;
     }
