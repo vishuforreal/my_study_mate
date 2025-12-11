@@ -46,7 +46,8 @@ class AuthProvider with ChangeNotifier {
     required String email,
     required String password,
     String? phone,
-    String? course,
+    required String category,
+    String? subcategory,
   }) async {
     _isLoading = true;
     _error = null;
@@ -58,7 +59,8 @@ class AuthProvider with ChangeNotifier {
         email: email,
         password: password,
         phone: phone,
-        course: course,
+        category: category,
+        subcategory: subcategory,
       );
 
       if (response['success']) {

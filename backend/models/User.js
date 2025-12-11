@@ -25,10 +25,12 @@ const userSchema = new mongoose.Schema({
         type: String,
         trim: true
     },
-    course: {
+    category: {
         type: String,
-        enum: ['BCA', 'BBA', 'MBA', 'MCA', 'B.Tech', 'M.Tech', 'Class 10', 'Class 11', 'Class 12', 'SSC', 'UPSC', 'Other'],
-        default: 'Other'
+        required: [true, 'Please select a category']
+    },
+    subcategory: {
+        type: String
     },
     role: {
         type: String,

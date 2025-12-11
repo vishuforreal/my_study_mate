@@ -22,12 +22,10 @@ const bookSchema = new mongoose.Schema({
     },
     category: {
         type: String,
-        required: [true, 'Please select a category'],
-        enum: ['College', 'School', 'Competitive']
+        required: [true, 'Please select a category']
     },
-    course: {
-        type: String,
-        required: [true, 'Please select a course']
+    subcategory: {
+        type: String
     },
     fileUrl: {
         type: String,

@@ -13,12 +13,25 @@ const Assignment = require('../models/Assignment');
 // @access  Private (Student)
 router.get('/notes', protect, checkPermission('notes'), async (req, res) => {
     try {
-        const { category, course, subject } = req.query;
-
-        let query = {};
-        if (category) query.category = category;
-        if (course) query.course = course;
+        const { subject, search } = req.query;
+        
+        let query = {
+            category: req.user.category
+        };
+        
+        if (req.user.subcategory) {
+            query.subcategory = req.user.subcategory;
+        }
+        
         if (subject) query.subject = subject;
+        
+        if (search) {
+            query.$or = [
+                { title: { $regex: search, $options: 'i' } },
+                { description: { $regex: search, $options: 'i' } },
+                { subject: { $regex: search, $options: 'i' } }
+            ];
+        }
 
         const notes = await Note.find(query).sort({ createdAt: -1 });
 
@@ -41,12 +54,25 @@ router.get('/notes', protect, checkPermission('notes'), async (req, res) => {
 // @access  Private (Student)
 router.get('/books', protect, checkPermission('books'), async (req, res) => {
     try {
-        const { category, course, subject } = req.query;
-
-        let query = {};
-        if (category) query.category = category;
-        if (course) query.course = course;
+        const { subject, search } = req.query;
+        
+        let query = {
+            category: req.user.category
+        };
+        
+        if (req.user.subcategory) {
+            query.subcategory = req.user.subcategory;
+        }
+        
         if (subject) query.subject = subject;
+        
+        if (search) {
+            query.$or = [
+                { title: { $regex: search, $options: 'i' } },
+                { author: { $regex: search, $options: 'i' } },
+                { subject: { $regex: search, $options: 'i' } }
+            ];
+        }
 
         const books = await Book.find(query).sort({ createdAt: -1 });
 
@@ -69,15 +95,27 @@ router.get('/books', protect, checkPermission('books'), async (req, res) => {
 // @access  Private (Student)
 router.get('/tests', protect, checkPermission('tests'), async (req, res) => {
     try {
-        const { category, course, subject, difficulty } = req.query;
-
-        let query = {};
-        if (category) query.category = category;
-        if (course) query.course = course;
+        const { subject, difficulty, search } = req.query;
+        
+        let query = {
+            category: req.user.category
+        };
+        
+        if (req.user.subcategory) {
+            query.subcategory = req.user.subcategory;
+        }
+        
         if (subject) query.subject = subject;
         if (difficulty) query.difficulty = difficulty;
+        
+        if (search) {
+            query.$or = [
+                { title: { $regex: search, $options: 'i' } },
+                { description: { $regex: search, $options: 'i' } },
+                { subject: { $regex: search, $options: 'i' } }
+            ];
+        }
 
-        // Don't send correct answers to students initially
         const tests = await Test.find(query).select('-questions.correctAnswer -questions.explanation').sort({ createdAt: -1 });
 
         res.status(200).json({

@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../config/constants.dart';
+import '../../services/category_service.dart';
+import '../../models/category_model.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -17,7 +19,30 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _phoneController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
-  String _selectedCourse = AppConstants.courses[0];
+  String? _selectedCategory;
+  String? _selectedSubcategory;
+  List<CategoryModel> _categories = [];
+  List<SubcategoryModel> _subcategories = [];
+  final CategoryService _categoryService = CategoryService();
+
+  @override
+  void initState() {
+    super.initState();
+    _loadCategories();
+  }
+
+  Future<void> _loadCategories() async {
+    try {
+      final categories = await _categoryService.getCategories();
+      setState(() {
+        _categories = categories;
+      });
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error loading categories: $e')),
+      );
+    }
+  }
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
 
@@ -41,7 +66,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
       email: _emailController.text.trim(),
       password: _passwordController.text,
       phone: _phoneController.text.trim(),
-      course: _selectedCourse,
+      category: _selectedCategory!,
+      subcategory: _selectedSubcategory,
     );
 
     if (!mounted) return;
@@ -129,25 +155,56 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   ),
                 ),
                 const SizedBox(height: 16),
-                // Course Dropdown
+                // Category Dropdown
                 DropdownButtonFormField<String>(
-                  value: _selectedCourse,
+                  value: _selectedCategory,
                   decoration: const InputDecoration(
-                    labelText: 'Course',
-                    prefixIcon: Icon(Icons.school_outlined),
+                    labelText: 'Category',
+                    prefixIcon: Icon(Icons.category_outlined),
                   ),
-                  items: AppConstants.courses.map((course) {
+                  items: _categories.map((category) {
                     return DropdownMenuItem(
-                      value: course,
-                      child: Text(course),
+                      value: category.name,
+                      child: Text(category.name),
                     );
                   }).toList(),
                   onChanged: (value) {
                     setState(() {
-                      _selectedCourse = value!;
+                      _selectedCategory = value;
+                      _selectedSubcategory = null;
+                      _subcategories = _categories
+                          .firstWhere((cat) => cat.name == value)
+                          .subcategories;
                     });
                   },
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please select a category';
+                    }
+                    return null;
+                  },
                 ),
+                const SizedBox(height: 16),
+                // Subcategory Dropdown (if available)
+                if (_subcategories.isNotEmpty)
+                  DropdownButtonFormField<String>(
+                    value: _selectedSubcategory,
+                    decoration: const InputDecoration(
+                      labelText: 'Subcategory (Optional)',
+                      prefixIcon: Icon(Icons.subdirectory_arrow_right),
+                    ),
+                    items: _subcategories.map((subcategory) {
+                      return DropdownMenuItem(
+                        value: subcategory.name,
+                        child: Text(subcategory.name),
+                      );
+                    }).toList(),
+                    onChanged: (value) {
+                      setState(() {
+                        _selectedSubcategory = value;
+                      });
+                    },
+                  ),
                 const SizedBox(height: 16),
                 // Password Field
                 TextFormField(

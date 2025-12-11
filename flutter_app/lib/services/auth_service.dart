@@ -13,7 +13,8 @@ class AuthService {
     required String email,
     required String password,
     String? phone,
-    String? course,
+    required String category,
+    String? subcategory,
   }) async {
     try {
       final response = await _apiService.post(
@@ -23,7 +24,8 @@ class AuthService {
           'email': email,
           'password': password,
           'phone': phone,
-          'course': course ?? 'Other',
+          'category': category,
+          'subcategory': subcategory,
         },
         includeAuth: false,
       );

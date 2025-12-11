@@ -4,7 +4,6 @@ const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const { protect } = require('../middleware/authMiddleware');
 const upload = require('../middleware/uploadMiddleware');
-// const cloudinary = require('../config/cloudinary');
 
 // Generate JWT Token
 const generateToken = (id) => {
@@ -18,7 +17,7 @@ const generateToken = (id) => {
 // @access  Public
 router.post('/register', async (req, res) => {
     try {
-        const { name, email, password, phone, course } = req.body;
+        const { name, email, password, phone, category, subcategory } = req.body;
 
         // Check if user exists
         const userExists = await User.findOne({ email });
@@ -35,7 +34,8 @@ router.post('/register', async (req, res) => {
             email,
             password,
             phone,
-            course,
+            category,
+            subcategory,
             role: 'student'
         });
 
@@ -51,7 +51,8 @@ router.post('/register', async (req, res) => {
                 name: user.name,
                 email: user.email,
                 phone: user.phone,
-                course: user.course,
+                category: user.category,
+                subcategory: user.subcategory,
                 role: user.role,
                 profilePhoto: user.profilePhoto,
                 permissions: user.permissions
@@ -123,7 +124,8 @@ router.post('/login', async (req, res) => {
                 name: user.name,
                 email: user.email,
                 phone: user.phone,
-                course: user.course,
+                category: user.category,
+                subcategory: user.subcategory,
                 role: user.role,
                 profilePhoto: user.profilePhoto,
                 permissions: user.permissions
@@ -152,7 +154,8 @@ router.get('/me', protect, async (req, res) => {
                 name: user.name,
                 email: user.email,
                 phone: user.phone,
-                course: user.course,
+                category: user.category,
+                subcategory: user.subcategory,
                 role: user.role,
                 profilePhoto: user.profilePhoto,
                 permissions: user.permissions,
@@ -174,13 +177,14 @@ router.get('/me', protect, async (req, res) => {
 // @access  Private
 router.put('/update-profile', protect, async (req, res) => {
     try {
-        const { name, phone, course } = req.body;
+        const { name, phone, category, subcategory } = req.body;
 
         const user = await User.findById(req.user.id);
 
         if (name) user.name = name;
         if (phone) user.phone = phone;
-        if (course) user.course = course;
+        if (category) user.category = category;
+        if (subcategory) user.subcategory = subcategory;
 
         await user.save();
 
@@ -192,7 +196,8 @@ router.put('/update-profile', protect, async (req, res) => {
                 name: user.name,
                 email: user.email,
                 phone: user.phone,
-                course: user.course,
+                category: user.category,
+                subcategory: user.subcategory,
                 role: user.role,
                 profilePhoto: user.profilePhoto
             }
@@ -260,7 +265,6 @@ router.put('/upload-photo', protect, upload.single('photo'), async (req, res) =>
             });
         }
 
-        // Upload to cloudinary (placeholder - will be implemented with cloudinary config)
         const photoUrl = `/uploads/${req.file.filename}`;
 
         const user = await User.findById(req.user.id);

@@ -3,7 +3,8 @@ class UserModel {
   final String name;
   final String email;
   final String? phone;
-  final String course;
+  final String category;
+  final String? subcategory;
   final String role;
   final String? profilePhoto;
   final bool isBlocked;
@@ -16,7 +17,8 @@ class UserModel {
     required this.name,
     required this.email,
     this.phone,
-    required this.course,
+    required this.category,
+    this.subcategory,
     required this.role,
     this.profilePhoto,
     this.isBlocked = false,
@@ -31,7 +33,8 @@ class UserModel {
       name: json['name'] ?? '',
       email: json['email'] ?? '',
       phone: json['phone'],
-      course: json['course'] ?? 'Other',
+      category: json['category'] ?? '',
+      subcategory: json['subcategory'],
       role: json['role'] ?? 'student',
       profilePhoto: json['profilePhoto'],
       isBlocked: json['isBlocked'] ?? false,
@@ -47,7 +50,8 @@ class UserModel {
       'name': name,
       'email': email,
       'phone': phone,
-      'course': course,
+      'category': category,
+      'subcategory': subcategory,
       'role': role,
       'profilePhoto': profilePhoto,
       'isBlocked': isBlocked,
