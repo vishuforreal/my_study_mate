@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 class AppConstants {
   // API Configuration
-  static const String baseUrl = 'https://YOUR_RAILWAY_APP_NAME.up.railway.app/api';
+  static const String baseUrl = 'https://mystudymate-production-2878.up.railway.app/api';
   // Replace YOUR_RAILWAY_APP_NAME with your actual Railway app name
   // For local testing: 'http://localhost:5000/api'
   

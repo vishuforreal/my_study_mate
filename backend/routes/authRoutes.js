@@ -4,7 +4,7 @@ const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const { protect } = require('../middleware/authMiddleware');
 const upload = require('../middleware/uploadMiddleware');
-const cloudinary = require('../config/cloudinary');
+// const cloudinary = require('../config/cloudinary');
 
 // Generate JWT Token
 const generateToken = (id) => {
