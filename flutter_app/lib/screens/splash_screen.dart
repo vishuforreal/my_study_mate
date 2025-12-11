@@ -25,7 +25,10 @@ class _SplashScreenState extends State<SplashScreen> {
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
 
     if (authProvider.isAuthenticated) {
-      if (authProvider.isStudent) {
+      // Check if user is blocked
+      if (authProvider.user?.isBlocked ?? false) {
+        Navigator.pushReplacementNamed(context, '/blocked');
+      } else if (authProvider.isStudent) {
         Navigator.pushReplacementNamed(context, '/student-home');
       } else if (authProvider.isAdmin || authProvider.isSuperAdmin) {
         Navigator.pushReplacementNamed(context, '/admin-home');

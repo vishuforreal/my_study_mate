@@ -7,6 +7,7 @@ import 'services/api_service.dart';
 import 'screens/splash_screen.dart';
 import 'screens/auth/login_screen.dart';
 import 'screens/auth/register_screen.dart';
+import 'screens/auth/blocked_user_screen.dart';
 import 'screens/student/student_home_screen.dart';
 import 'screens/admin/admin_home_screen.dart';
 
@@ -41,6 +42,7 @@ class MyStudyMateApp extends StatelessWidget {
             routes: {
               '/login': (context) => const LoginScreen(),
               '/register': (context) => const RegisterScreen(),
+              '/blocked': (context) => const BlockedUserScreen(),
               '/student-home': (context) => const StudentHomeScreen(),
               '/admin-home': (context) => const AdminHomeScreen(),
             },
