@@ -42,7 +42,7 @@ router.get('/students', async (req, res) => {
 // @access  Private (Admin)
 router.put('/students/:id/block', async (req, res) => {
     try {
-        const student = await User.findById(req.params.id);
+        const student = await User.findById(req.params.id).select('-password');
 
         if (!student || student.role !== 'student') {
             return res.status(404).json({
@@ -57,9 +57,15 @@ router.put('/students/:id/block', async (req, res) => {
         res.status(200).json({
             success: true,
             message: `Student ${student.isBlocked ? 'blocked' : 'unblocked'} successfully`,
-            student
+            student: {
+                id: student._id,
+                name: student.name,
+                email: student.email,
+                isBlocked: student.isBlocked
+            }
         });
     } catch (error) {
+        console.error('Block student error:', error);
         res.status(500).json({
             success: false,
             message: 'Error updating student status',

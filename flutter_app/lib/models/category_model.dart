@@ -29,16 +29,19 @@ class CategoryModel {
 }
 
 class SubcategoryModel {
+  final String id;
   final String name;
   final DateTime createdAt;
 
   SubcategoryModel({
+    required this.id,
     required this.name,
     required this.createdAt,
   });
 
   factory SubcategoryModel.fromJson(Map<String, dynamic> json) {
     return SubcategoryModel(
+      id: json['_id'] ?? '',
       name: json['name'] ?? '',
       createdAt: json['createdAt'] != null 
           ? DateTime.parse(json['createdAt']) 

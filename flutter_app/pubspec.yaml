@@ -27,7 +27,6 @@ dependencies:
   
   # File Handling
   image_picker: ^1.0.7
-  file_picker: ^6.1.1
   
   # Image Handling
   cached_network_image: ^3.3.1
