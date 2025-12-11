@@ -35,9 +35,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(compression());
 
 // Logging
-if (process.env.NODE_ENV === 'development') {
-    app.use(morgan('dev'));
-}
+app.use(morgan('dev'));
 
 // Rate limiting
 const limiter = rateLimit({
@@ -83,7 +81,7 @@ app.use((err, req, res, next) => {
     res.status(500).json({
         success: false,
         message: 'Server error',
-        error: process.env.NODE_ENV === 'development' ? err.message : 'Internal server error'
+        error: err.message
     });
 });
 
@@ -137,7 +135,7 @@ const PORT = process.env.PORT || 5000;
 
 connectDB().then(() => {
     app.listen(PORT, () => {
-        console.log(`Server running in ${process.env.NODE_ENV || 'development'} mode on port ${PORT}`);
+        console.log(`Server running on port ${PORT}`);
         console.log(`API URL: http://localhost:${PORT}`);
     });
 });
