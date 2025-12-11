@@ -124,7 +124,8 @@ class AuthProvider with ChangeNotifier {
   Future<bool> updateProfile({
     String? name,
     String? phone,
-    String? course,
+    String? category,
+    String? subcategory,
   }) async {
     _isLoading = true;
     _error = null;
@@ -134,7 +135,8 @@ class AuthProvider with ChangeNotifier {
       final response = await _authService.updateProfile(
         name: name,
         phone: phone,
-        course: course,
+        category: category,
+        subcategory: subcategory,
       );
 
       if (response['success']) {

@@ -124,7 +124,7 @@ class StudentDashboard extends StatelessWidget {
                               ),
                         ),
                         Text(
-                          user?.course ?? '',
+                          '${user?.category ?? ''}${user?.subcategory != null ? ' - ${user?.subcategory}' : ''}',
                           style: Theme.of(context).textTheme.bodySmall?.copyWith(
                                 color: Colors.white70,
                               ),

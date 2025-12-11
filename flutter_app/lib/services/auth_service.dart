@@ -89,13 +89,15 @@ class AuthService {
   Future<Map<String, dynamic>> updateProfile({
     String? name,
     String? phone,
-    String? course,
+    String? category,
+    String? subcategory,
   }) async {
     try {
       final body = <String, dynamic>{};
       if (name != null) body['name'] = name;
       if (phone != null) body['phone'] = phone;
-      if (course != null) body['course'] = course;
+      if (category != null) body['category'] = category;
+      if (subcategory != null) body['subcategory'] = subcategory;
 
       final response = await _apiService.put('/auth/update-profile', body: body);
 

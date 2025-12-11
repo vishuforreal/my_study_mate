@@ -3,6 +3,8 @@ import 'package:provider/provider.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../providers/auth_provider.dart';
 import '../../config/constants.dart';
+import '../../services/category_service.dart';
+import '../../models/category_model.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -15,7 +17,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _phoneController = TextEditingController();
-  String? _selectedCourse;
+  String? _selectedCategory;
+  String? _selectedSubcategory;
+  List<CategoryModel> _categories = [];
+  List<SubcategoryModel> _subcategories = [];
+  final CategoryService _categoryService = CategoryService();
 
   @override
   void initState() {
@@ -23,7 +29,25 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final user = Provider.of<AuthProvider>(context, listen: false).user;
     _nameController.text = user?.name ?? '';
     _phoneController.text = user?.phone ?? '';
-    _selectedCourse = user?.course;
+    _selectedCategory = user?.category;
+    _selectedSubcategory = user?.subcategory;
+    _loadCategories();
+  }
+
+  Future<void> _loadCategories() async {
+    try {
+      final categories = await _categoryService.getCategories();
+      setState(() {
+        _categories = categories;
+        if (_selectedCategory != null) {
+          _subcategories = _categories
+              .firstWhere((cat) => cat.name == _selectedCategory, orElse: () => CategoryModel(id: '', name: '', type: '', subcategories: [], createdAt: DateTime.now()))
+              .subcategories;
+        }
+      });
+    } catch (e) {
+      // Handle error silently
+    }
   }
 
   @override
@@ -41,7 +65,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final success = await authProvider.updateProfile(
       name: _nameController.text.trim(),
       phone: _phoneController.text.trim(),
-      course: _selectedCourse,
+      category: _selectedCategory,
+      subcategory: _selectedSubcategory,
     );
 
     if (!mounted) return;
@@ -204,23 +229,47 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       ),
                       const SizedBox(height: 16),
                       DropdownButtonFormField<String>(
-                        value: _selectedCourse,
+                        value: _selectedCategory,
                         decoration: const InputDecoration(
-                          labelText: 'Course',
-                          prefixIcon: Icon(Icons.school),
+                          labelText: 'Category',
+                          prefixIcon: Icon(Icons.category),
                         ),
-                        items: AppConstants.courses.map((course) {
+                        items: _categories.map((category) {
                           return DropdownMenuItem(
-                            value: course,
-                            child: Text(course),
+                            value: category.name,
+                            child: Text(category.name),
                           );
                         }).toList(),
                         onChanged: (value) {
                           setState(() {
-                            _selectedCourse = value;
+                            _selectedCategory = value;
+                            _selectedSubcategory = null;
+                            _subcategories = _categories
+                                .firstWhere((cat) => cat.name == value)
+                                .subcategories;
                           });
                         },
                       ),
+                      const SizedBox(height: 16),
+                      if (_subcategories.isNotEmpty)
+                        DropdownButtonFormField<String>(
+                          value: _selectedSubcategory,
+                          decoration: const InputDecoration(
+                            labelText: 'Subcategory',
+                            prefixIcon: Icon(Icons.subdirectory_arrow_right),
+                          ),
+                          items: _subcategories.map((subcategory) {
+                            return DropdownMenuItem(
+                              value: subcategory.name,
+                              child: Text(subcategory.name),
+                            );
+                          }).toList(),
+                          onChanged: (value) {
+                            setState(() {
+                              _selectedSubcategory = value;
+                            });
+                          },
+                        ),
                       const SizedBox(height: 24),
                       ElevatedButton(
                         onPressed: authProvider.isLoading ? null : _updateProfile,
