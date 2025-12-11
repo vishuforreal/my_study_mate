@@ -15,12 +15,15 @@ router.get('/notes', protect, checkPermission('notes'), async (req, res) => {
     try {
         const { subject, search } = req.query;
         
-        let query = {
-            category: req.user.category
-        };
+        let query = {};
         
-        if (req.user.subcategory) {
-            query.subcategory = req.user.subcategory;
+        // Only filter by category for students
+        if (req.user.role === 'student' && req.user.category) {
+            query.category = req.user.category;
+            
+            if (req.user.subcategory) {
+                query.subcategory = req.user.subcategory;
+            }
         }
         
         if (subject) query.subject = subject;
@@ -56,12 +59,15 @@ router.get('/books', protect, checkPermission('books'), async (req, res) => {
     try {
         const { subject, search } = req.query;
         
-        let query = {
-            category: req.user.category
-        };
+        let query = {};
         
-        if (req.user.subcategory) {
-            query.subcategory = req.user.subcategory;
+        // Only filter by category for students
+        if (req.user.role === 'student' && req.user.category) {
+            query.category = req.user.category;
+            
+            if (req.user.subcategory) {
+                query.subcategory = req.user.subcategory;
+            }
         }
         
         if (subject) query.subject = subject;
@@ -97,12 +103,15 @@ router.get('/tests', protect, checkPermission('tests'), async (req, res) => {
     try {
         const { subject, difficulty, search } = req.query;
         
-        let query = {
-            category: req.user.category
-        };
+        let query = {};
         
-        if (req.user.subcategory) {
-            query.subcategory = req.user.subcategory;
+        // Only filter by category for students
+        if (req.user.role === 'student' && req.user.category) {
+            query.category = req.user.category;
+            
+            if (req.user.subcategory) {
+                query.subcategory = req.user.subcategory;
+            }
         }
         
         if (subject) query.subject = subject;

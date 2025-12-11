@@ -27,7 +27,9 @@ const userSchema = new mongoose.Schema({
     },
     category: {
         type: String,
-        required: [true, 'Please select a category']
+        required: function() {
+            return this.role === 'student';
+        }
     },
     subcategory: {
         type: String

@@ -3,7 +3,7 @@ class UserModel {
   final String name;
   final String email;
   final String? phone;
-  final String category;
+  final String? category;
   final String? subcategory;
   final String role;
   final String? profilePhoto;
@@ -17,7 +17,7 @@ class UserModel {
     required this.name,
     required this.email,
     this.phone,
-    required this.category,
+    this.category,
     this.subcategory,
     required this.role,
     this.profilePhoto,
@@ -33,7 +33,7 @@ class UserModel {
       name: json['name'] ?? '',
       email: json['email'] ?? '',
       phone: json['phone'],
-      category: json['category'] ?? '',
+      category: json['category'],
       subcategory: json['subcategory'],
       role: json['role'] ?? 'student',
       profilePhoto: json['profilePhoto'],
