@@ -636,6 +636,29 @@ router.get('/analytics', async (req, res) => {
 
 // ============ SUPER ADMIN ONLY ============
 
+// @route   GET /api/admin/admins
+// @desc    Get all admins (Super Admin only)
+// @access  Private (Super Admin)
+router.get('/admins', authorize('superadmin'), async (req, res) => {
+    try {
+        const admins = await User.find({ role: { $in: ['admin', 'superadmin'] } })
+            .select('-password')
+            .sort({ createdAt: -1 });
+
+        res.status(200).json({
+            success: true,
+            count: admins.length,
+            admins
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: 'Error fetching admins',
+            error: error.message
+        });
+    }
+});
+
 // @route   POST /api/admin/create-admin
 // @desc    Create new admin (Super Admin only)
 // @access  Private (Super Admin)
@@ -655,7 +678,9 @@ router.post('/create-admin', authorize('superadmin'), async (req, res) => {
             name,
             email,
             password,
-            role: 'admin'
+            role: 'admin',
+            securityQuestion: 'What is your favorite color?',
+            securityAnswer: 'blue'
         });
 
         res.status(201).json({
@@ -672,6 +697,80 @@ router.post('/create-admin', authorize('superadmin'), async (req, res) => {
         res.status(500).json({
             success: false,
             message: 'Error creating admin',
+            error: error.message
+        });
+    }
+});
+
+// @route   PUT /api/admin/admins/:id
+// @desc    Update admin (Super Admin only)
+// @access  Private (Super Admin)
+router.put('/admins/:id', authorize('superadmin'), async (req, res) => {
+    try {
+        const { name, email } = req.body;
+        
+        const admin = await User.findById(req.params.id);
+        if (!admin || !['admin', 'superadmin'].includes(admin.role)) {
+            return res.status(404).json({
+                success: false,
+                message: 'Admin not found'
+            });
+        }
+
+        admin.name = name || admin.name;
+        admin.email = email || admin.email;
+        await admin.save();
+
+        res.status(200).json({
+            success: true,
+            message: 'Admin updated successfully',
+            admin: {
+                id: admin._id,
+                name: admin.name,
+                email: admin.email,
+                role: admin.role
+            }
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: 'Error updating admin',
+            error: error.message
+        });
+    }
+});
+
+// @route   DELETE /api/admin/admins/:id
+// @desc    Delete admin (Super Admin only)
+// @access  Private (Super Admin)
+router.delete('/admins/:id', authorize('superadmin'), async (req, res) => {
+    try {
+        const admin = await User.findById(req.params.id);
+        
+        if (!admin || admin.role !== 'admin') {
+            return res.status(404).json({
+                success: false,
+                message: 'Admin not found'
+            });
+        }
+
+        if (admin.isSuperAdmin) {
+            return res.status(400).json({
+                success: false,
+                message: 'Cannot delete super admin'
+            });
+        }
+
+        await User.findByIdAndDelete(req.params.id);
+
+        res.status(200).json({
+            success: true,
+            message: 'Admin deleted successfully'
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: 'Error deleting admin',
             error: error.message
         });
     }

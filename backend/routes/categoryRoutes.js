@@ -89,6 +89,73 @@ router.post('/:id/subcategories', protect, authorize('admin', 'superadmin'), asy
     }
 });
 
+// @route   PUT /api/categories/:id
+// @desc    Update category
+// @access  Private (Admin)
+router.put('/:id', protect, authorize('admin', 'superadmin'), async (req, res) => {
+    try {
+        const { name, type } = req.body;
+        
+        const category = await Category.findByIdAndUpdate(
+            req.params.id,
+            { name, type },
+            { new: true, runValidators: true }
+        );
+
+        if (!category) {
+            return res.status(404).json({
+                success: false,
+                message: 'Category not found'
+            });
+        }
+
+        res.status(200).json({
+            success: true,
+            message: 'Category updated successfully',
+            category
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: 'Error updating category',
+            error: error.message
+        });
+    }
+});
+
+// @route   DELETE /api/categories/:categoryId/subcategories/:subcategoryId
+// @desc    Delete subcategory
+// @access  Private (Admin)
+router.delete('/:categoryId/subcategories/:subcategoryId', protect, authorize('admin', 'superadmin'), async (req, res) => {
+    try {
+        const category = await Category.findById(req.params.categoryId);
+
+        if (!category) {
+            return res.status(404).json({
+                success: false,
+                message: 'Category not found'
+            });
+        }
+
+        category.subcategories = category.subcategories.filter(
+            sub => sub._id.toString() !== req.params.subcategoryId
+        );
+        await category.save();
+
+        res.status(200).json({
+            success: true,
+            message: 'Subcategory deleted successfully',
+            category
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: 'Error deleting subcategory',
+            error: error.message
+        });
+    }
+});
+
 // @route   DELETE /api/categories/:id
 // @desc    Delete category
 // @access  Private (Admin)

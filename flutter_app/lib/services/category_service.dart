@@ -45,4 +45,12 @@ class CategoryService {
       rethrow;
     }
   }
+
+  Future<void> deleteSubcategory(String categoryId, String subcategoryId) async {
+    try {
+      await _apiService.delete('/categories/$categoryId/subcategories/$subcategoryId');
+    } catch (e) {
+      rethrow;
+    }
+  }
 }

@@ -6,6 +6,9 @@ import '../../config/constants.dart';
 import 'student_management_screen.dart';
 import 'analytics_screen.dart';
 import 'create_admin_screen.dart';
+import 'category_management_screen.dart';
+import 'admin_management_screen.dart';
+import 'content_management_screen.dart';
 
 class AdminHomeScreen extends StatefulWidget {
   const AdminHomeScreen({super.key});
@@ -118,35 +121,39 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                   },
                 ),
                 _AdminCard(
-                  title: 'Notes',
-                  icon: Icons.note_outlined,
+                  title: 'Content',
+                  icon: Icons.library_books_outlined,
                   color: Colors.green,
                   onTap: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Notes Management - Coming soon')),
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const ContentManagementScreen()),
                     );
                   },
                 ),
                 _AdminCard(
-                  title: 'Books',
-                  icon: Icons.menu_book_outlined,
+                  title: 'Categories',
+                  icon: Icons.category_outlined,
                   color: Colors.orange,
                   onTap: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Books Management - Coming soon')),
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const CategoryManagementScreen()),
                     );
                   },
                 ),
-                _AdminCard(
-                  title: 'Tests',
-                  icon: Icons.quiz_outlined,
-                  color: Colors.purple,
-                  onTap: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Tests Management - Coming soon')),
-                    );
-                  },
-                ),
+                if (user?.isSuperAdmin ?? false)
+                  _AdminCard(
+                    title: 'Admins',
+                    icon: Icons.admin_panel_settings_outlined,
+                    color: Colors.purple,
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => const AdminManagementScreen()),
+                      );
+                    },
+                  ),
                 _AdminCard(
                   title: 'Analytics',
                   icon: Icons.analytics_outlined,

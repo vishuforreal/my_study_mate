@@ -139,6 +139,35 @@ class ApiService {
       rethrow;
     }
   }
+
+  // Multipart request with mixed data types
+  Future<Map<String, dynamic>> postMultipart(String endpoint, Map<String, dynamic> data) async {
+    try {
+      final uri = Uri.parse('${AppConstants.baseUrl}$endpoint');
+      final request = http.MultipartRequest('POST', uri);
+
+      // Add headers
+      if (_token != null) {
+        request.headers['Authorization'] = 'Bearer $_token';
+      }
+
+      // Process data
+      for (var entry in data.entries) {
+        if (entry.value is String) {
+          request.fields[entry.key] = entry.value;
+        } else if (entry.value != null) {
+          // Handle File objects
+          request.files.add(await http.MultipartFile.fromPath(entry.key, entry.value.path));
+        }
+      }
+
+      final streamedResponse = await request.send();
+      final response = await http.Response.fromStream(streamedResponse);
+      return _handleResponse(response);
+    } catch (e) {
+      rethrow;
+    }
+  }
 }
 
 class ApiException implements Exception {

@@ -40,7 +40,7 @@ class _CreateAdminScreenState extends State<CreateAdminScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Admin created successfully')),
         );
-        Navigator.pop(context);
+        Navigator.pop(context, true);
       }
     } catch (e) {
       if (mounted) {

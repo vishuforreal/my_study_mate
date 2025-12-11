@@ -100,6 +100,19 @@ class AdminService {
 
   // ============ SUPER ADMIN ============
 
+  Future<List<UserModel>> getAdmins() async {
+    try {
+      final response = await _apiService.get('/admin/admins');
+      if (response['success']) {
+        final List admins = response['admins'];
+        return admins.map((admin) => UserModel.fromJson(admin)).toList();
+      }
+      return [];
+    } catch (e) {
+      rethrow;
+    }
+  }
+
   Future<void> createAdmin(String name, String email, String password) async {
     try {
       await _apiService.post('/admin/create-admin', body: {
@@ -107,6 +120,75 @@ class AdminService {
         'email': email,
         'password': password,
       });
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<void> updateAdmin(String adminId, String name, String email) async {
+    try {
+      await _apiService.put('/admin/admins/$adminId', body: {
+        'name': name,
+        'email': email,
+      });
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<void> deleteAdmin(String adminId) async {
+    try {
+      await _apiService.delete('/admin/admins/$adminId');
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  // ============ CONTENT UPLOAD ============
+
+  Future<void> uploadNote(Map<String, dynamic> noteData) async {
+    try {
+      await _apiService.postMultipart('/admin/notes', noteData);
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<void> uploadBook(Map<String, dynamic> bookData) async {
+    try {
+      await _apiService.postMultipart('/admin/books', bookData);
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<void> uploadTest(Map<String, dynamic> testData) async {
+    try {
+      await _apiService.post('/admin/tests', body: testData);
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<void> uploadPPT(Map<String, dynamic> pptData) async {
+    try {
+      await _apiService.postMultipart('/admin/ppts', pptData);
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<void> uploadProject(Map<String, dynamic> projectData) async {
+    try {
+      await _apiService.postMultipart('/admin/projects', projectData);
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<void> uploadAssignment(Map<String, dynamic> assignmentData) async {
+    try {
+      await _apiService.postMultipart('/admin/assignments', assignmentData);
     } catch (e) {
       rethrow;
     }

@@ -76,6 +76,10 @@ class _CategoryManagementScreenState extends State<CategoryManagementScreen> {
                       ListTile(
                         title: Text(sub.name),
                         leading: const Icon(Icons.subdirectory_arrow_right),
+                        trailing: IconButton(
+                          icon: const Icon(Icons.delete, color: Colors.red),
+                          onPressed: () => _deleteSubcategory(category.id, sub.id),
+                        ),
                       )
                     ).toList(),
                   ),
@@ -178,6 +182,17 @@ class _CategoryManagementScreenState extends State<CategoryManagementScreen> {
   Future<void> _deleteCategory(String categoryId) async {
     try {
       await _categoryService.deleteCategory(categoryId);
+      _loadCategories();
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: $e')),
+      );
+    }
+  }
+
+  Future<void> _deleteSubcategory(String categoryId, String subcategoryId) async {
+    try {
+      await _categoryService.deleteSubcategory(categoryId, subcategoryId);
       _loadCategories();
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
