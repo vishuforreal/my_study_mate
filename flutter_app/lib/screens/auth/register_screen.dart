@@ -19,6 +19,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _phoneController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
+  final _securityAnswerController = TextEditingController();
+  String _selectedSecurityQuestion = AppConstants.securityQuestions[0];
   String? _selectedCategory;
   String? _selectedSubcategory;
   List<CategoryModel> _categories = [];
@@ -53,6 +55,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     _phoneController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
+    _securityAnswerController.dispose();
     super.dispose();
   }
 
@@ -68,6 +71,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
       phone: _phoneController.text.trim(),
       category: _selectedCategory!,
       subcategory: _selectedSubcategory,
+      securityQuestion: _selectedSecurityQuestion,
+      securityAnswer: _securityAnswerController.text.trim(),
     );
 
     if (!mounted) return;
@@ -205,6 +210,41 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       });
                     },
                   ),
+                const SizedBox(height: 16),
+                // Security Question Dropdown
+                DropdownButtonFormField<String>(
+                  value: _selectedSecurityQuestion,
+                  decoration: const InputDecoration(
+                    labelText: 'Security Question',
+                    prefixIcon: Icon(Icons.security_outlined),
+                  ),
+                  items: AppConstants.securityQuestions.map((question) {
+                    return DropdownMenuItem(
+                      value: question,
+                      child: Text(question, overflow: TextOverflow.ellipsis),
+                    );
+                  }).toList(),
+                  onChanged: (value) {
+                    setState(() {
+                      _selectedSecurityQuestion = value!;
+                    });
+                  },
+                ),
+                const SizedBox(height: 16),
+                // Security Answer Field
+                TextFormField(
+                  controller: _securityAnswerController,
+                  decoration: const InputDecoration(
+                    labelText: 'Security Answer',
+                    prefixIcon: Icon(Icons.key_outlined),
+                  ),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please provide security answer';
+                    }
+                    return null;
+                  },
+                ),
                 const SizedBox(height: 16),
                 // Password Field
                 TextFormField(

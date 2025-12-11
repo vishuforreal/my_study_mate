@@ -15,6 +15,8 @@ class AuthService {
     String? phone,
     required String category,
     String? subcategory,
+    required String securityQuestion,
+    required String securityAnswer,
   }) async {
     try {
       final response = await _apiService.post(
@@ -26,6 +28,8 @@ class AuthService {
           'phone': phone,
           'category': category,
           'subcategory': subcategory,
+          'securityQuestion': securityQuestion,
+          'securityAnswer': securityAnswer,
         },
         includeAuth: false,
       );
@@ -191,6 +195,37 @@ class AuthService {
       return UserModel.fromJson(json.decode(userJson));
     }
     return null;
+  }
+
+  // Get security question for password reset
+  Future<Map<String, dynamic>> getSecurityQuestion(String email) async {
+    try {
+      final response = await _apiService.post(
+        '/auth/forgot-password',
+        body: {'email': email},
+        includeAuth: false,
+      );
+      return response;
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  // Reset password with security answer
+  Future<void> resetPassword(String email, String securityAnswer, String newPassword) async {
+    try {
+      await _apiService.post(
+        '/auth/verify-security',
+        body: {
+          'email': email,
+          'securityAnswer': securityAnswer,
+          'newPassword': newPassword,
+        },
+        includeAuth: false,
+      );
+    } catch (e) {
+      rethrow;
+    }
   }
 
   // Save auth data

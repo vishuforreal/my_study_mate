@@ -17,7 +17,7 @@ const generateToken = (id) => {
 // @access  Public
 router.post('/register', async (req, res) => {
     try {
-        const { name, email, password, phone, category, subcategory } = req.body;
+        const { name, email, password, phone, category, subcategory, securityQuestion, securityAnswer } = req.body;
 
         // Check if user exists
         const userExists = await User.findOne({ email });
@@ -36,6 +36,8 @@ router.post('/register', async (req, res) => {
             phone,
             category,
             subcategory,
+            securityQuestion,
+            securityAnswer,
             role: 'student'
         });
 
@@ -280,6 +282,72 @@ router.put('/upload-photo', protect, upload.single('photo'), async (req, res) =>
         res.status(500).json({
             success: false,
             message: 'Error uploading photo',
+            error: error.message
+        });
+    }
+});
+
+// @route   POST /api/auth/forgot-password
+// @desc    Get security question for password reset
+// @access  Public
+router.post('/forgot-password', async (req, res) => {
+    try {
+        const { email } = req.body;
+
+        const user = await User.findOne({ email });
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: 'User not found with this email'
+            });
+        }
+
+        res.status(200).json({
+            success: true,
+            securityQuestion: user.securityQuestion
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: 'Error processing request',
+            error: error.message
+        });
+    }
+});
+
+// @route   POST /api/auth/verify-security
+// @desc    Verify security answer and reset password
+// @access  Public
+router.post('/verify-security', async (req, res) => {
+    try {
+        const { email, securityAnswer, newPassword } = req.body;
+
+        const user = await User.findOne({ email }).select('+securityAnswer');
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: 'User not found'
+            });
+        }
+
+        if (user.securityAnswer.toLowerCase() !== securityAnswer.toLowerCase()) {
+            return res.status(400).json({
+                success: false,
+                message: 'Wrong security answer'
+            });
+        }
+
+        user.password = newPassword;
+        await user.save();
+
+        res.status(200).json({
+            success: true,
+            message: 'Password changed successfully'
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: 'Error resetting password',
             error: error.message
         });
     }

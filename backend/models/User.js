@@ -71,6 +71,15 @@ const userSchema = new mongoose.Schema({
             default: true
         }
     },
+    securityQuestion: {
+        type: String,
+        required: [true, 'Please select a security question']
+    },
+    securityAnswer: {
+        type: String,
+        required: [true, 'Please provide security answer'],
+        select: false
+    },
     lastLogin: {
         type: Date
     },

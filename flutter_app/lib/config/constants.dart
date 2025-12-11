@@ -121,4 +121,14 @@ class AppConstants {
 
   // Pagination
   static const int itemsPerPage = 20;
+
+  // Security Questions
+  static const List<String> securityQuestions = [
+    'What is your pet\'s name?',
+    'What is your mother\'s maiden name?',
+    'What was the name of your first school?',
+    'What is your favorite movie?',
+    'What city were you born in?',
+    'What is your favorite food?',
+  ];
 }
