@@ -74,14 +74,8 @@ app.get('/health', (req, res) => {
 // Reset database and create super admin
 app.get('/reset-database', async (req, res) => {
     try {
-        // Clear all collections
+        // Clear users only
         await User.deleteMany({});
-        await Note.deleteMany({});
-        await Book.deleteMany({});
-        await Test.deleteMany({});
-        await PPT.deleteMany({});
-        await Project.deleteMany({});
-        await Assignment.deleteMany({});
         
         // Create new super admin
         await User.create({
@@ -95,7 +89,7 @@ app.get('/reset-database', async (req, res) => {
         
         res.json({ 
             success: true, 
-            message: 'Database reset and super admin created',
+            message: 'Users cleared and super admin created',
             name: 'Vishwajeet',
             email: 'vishuuforreal@gmail.com',
             password: 'Vishu123'
