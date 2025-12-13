@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../services/category_service.dart';
 import '../../services/subject_service.dart';
 import '../../services/admin_service.dart';
@@ -178,13 +179,28 @@ class _NotesManagementScreenState extends State<NotesManagementScreen> {
                         ),
                         const SizedBox(height: 24),
 
-                        // Upload Button
-                        if (_selectedSubject != null)
-                          ElevatedButton.icon(
-                            onPressed: () => _showUploadDialog(),
-                            icon: const Icon(Icons.upload_file),
-                            label: const Text('Upload Note'),
+                        // Upload Button and Notes List
+                        if (_selectedSubject != null) ...[
+                          Row(
+                            children: [
+                              Expanded(
+                                child: ElevatedButton.icon(
+                                  onPressed: () => _showUploadDialog(),
+                                  icon: const Icon(Icons.upload_file),
+                                  label: const Text('Upload Note'),
+                                ),
+                              ),
+                              const SizedBox(width: 16),
+                              Expanded(
+                                child: ElevatedButton.icon(
+                                  onPressed: () => _showNotesListDialog(),
+                                  icon: const Icon(Icons.list),
+                                  label: const Text('View Notes'),
+                                ),
+                              ),
+                            ],
                           ),
+                        ],
                       ],
                     ],
                   ),
@@ -387,5 +403,126 @@ class _NotesManagementScreenState extends State<NotesManagementScreen> {
         ],
       ),
     );
+  }
+
+  void _showNotesListDialog() async {
+    try {
+      final units = await _subjectService.getUnitsForSubject(_selectedSubject!.name);
+      
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: Text('${_selectedSubject!.name} - Notes'),
+          content: SizedBox(
+            width: double.maxFinite,
+            height: 400,
+            child: units.isEmpty
+                ? const Center(child: Text('No notes found'))
+                : ListView.builder(
+                    itemCount: units.length,
+                    itemBuilder: (context, index) {
+                      final unit = units[index];
+                      return Card(
+                        child: ListTile(
+                          leading: CircleAvatar(
+                            child: Text('${unit['unit']}'),
+                          ),
+                          title: Text(unit['title']),
+                          subtitle: Text('Unit ${unit['unit']}'),
+                          trailing: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              IconButton(
+                                onPressed: () => _viewPDF(unit['pdfUrl']),
+                                icon: const Icon(Icons.visibility, color: Colors.blue),
+                                tooltip: 'View PDF',
+                              ),
+                              IconButton(
+                                onPressed: () => _deleteUnit(unit['unit']),
+                                icon: const Icon(Icons.delete, color: Colors.red),
+                                tooltip: 'Delete Unit',
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Close'),
+            ),
+          ],
+        ),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error loading notes: $e')),
+      );
+    }
+  }
+
+  void _viewPDF(String pdfUrl) {
+    Navigator.pop(context); // Close dialog first
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => Scaffold(
+          appBar: AppBar(title: const Text('PDF Viewer')),
+          body: Center(
+            child: ElevatedButton(
+              onPressed: () async {
+                final Uri url = Uri.parse(pdfUrl);
+                if (await canLaunchUrl(url)) {
+                  await launchUrl(url, mode: LaunchMode.externalApplication);
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Could not open PDF')),
+                  );
+                }
+              },
+              child: const Text('Open PDF'),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _deleteUnit(int unitNumber) async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Delete Unit'),
+        content: Text('Are you sure you want to delete Unit $unitNumber?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm == true) {
+      try {
+        await _adminService.deleteUnit(_selectedSubject!.name, unitNumber);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Unit $unitNumber deleted successfully')),
+        );
+        Navigator.pop(context); // Close notes dialog
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error deleting unit: $e')),
+        );
+      }
+    }
   }
 }

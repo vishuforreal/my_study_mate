@@ -201,4 +201,12 @@ class AdminService {
       rethrow;
     }
   }
+
+  Future<void> deleteUnit(String subjectName, int unitNumber) async {
+    try {
+      await _apiService.delete('/admin/notes/unit/$subjectName/$unitNumber');
+    } catch (e) {
+      rethrow;
+    }
+  }
 }

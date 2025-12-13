@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:url_launcher/url_launcher.dart';
+import 'package:provider/provider.dart';
 import '../../models/subject_model.dart';
 import '../../services/subject_service.dart';
+import '../../services/api_service.dart';
+import '../../providers/auth_provider.dart';
+import 'pdf_viewer_screen.dart';
 
 class UnitsListScreen extends StatefulWidget {
   final SubjectModel subject;
@@ -65,14 +68,31 @@ class _UnitsListScreenState extends State<UnitsListScreen> {
                           style: const TextStyle(fontWeight: FontWeight.w600),
                         ),
                         subtitle: Text('Unit ${unit['unit']} • PDF Notes'),
-                        trailing: ElevatedButton(
-                          onPressed: () => _openPDF(unit),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.green,
-                            foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                          ),
-                          child: const Text('View Notes'),
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            ElevatedButton(
+                              onPressed: () => _openPDF(unit),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.green,
+                                foregroundColor: Colors.white,
+                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                              ),
+                              child: const Text('View Notes'),
+                            ),
+                            Consumer<AuthProvider>(
+                              builder: (context, authProvider, _) {
+                                if (authProvider.isAdmin || authProvider.isSuperAdmin) {
+                                  return IconButton(
+                                    onPressed: () => _deleteUnit(unit['unit']),
+                                    icon: const Icon(Icons.delete, color: Colors.red),
+                                    tooltip: 'Delete Unit',
+                                  );
+                                }
+                                return const SizedBox.shrink();
+                              },
+                            ),
+                          ],
                         ),
                       ),
                     );
@@ -82,45 +102,65 @@ class _UnitsListScreenState extends State<UnitsListScreen> {
   }
 
   Future<void> _openPDF(Map<String, dynamic> unit) async {
-    try {
-      final pdfUrl = unit['pdfUrl'] ?? '';
-      
-      if (pdfUrl.isEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('PDF not available')),
-        );
-        return;
-      }
-
-      // Convert Google Drive link to direct view link if needed
-      String finalUrl = pdfUrl;
-      if (pdfUrl.contains('drive.google.com')) {
-        final fileId = _extractGoogleDriveFileId(pdfUrl);
-        if (fileId.isNotEmpty) {
-          finalUrl = 'https://drive.google.com/file/d/$fileId/view';
-        }
-      }
-
-      final Uri url = Uri.parse(finalUrl);
-      if (await canLaunchUrl(url)) {
-        await launchUrl(url, mode: LaunchMode.externalApplication);
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Could not open PDF')),
-        );
-      }
-    } catch (e) {
+    final pdfUrl = unit['pdfUrl'] ?? '';
+    
+    if (pdfUrl.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: $e')),
+        const SnackBar(content: Text('PDF not available')),
       );
+      return;
+    }
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => PDFViewerScreen(
+          pdfUrl: pdfUrl,
+          title: unit['title'],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _deleteUnit(int unitNumber) async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Delete Unit'),
+        content: Text('Are you sure you want to delete Unit $unitNumber?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm == true) {
+      try {
+        final apiService = ApiService();
+        await apiService.delete('/admin/notes/unit/${widget.subject.name}/$unitNumber');
+        
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Unit $unitNumber deleted successfully')),
+        );
+        
+        _loadUnits(); // Reload units
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error deleting unit: $e')),
+        );
+      }
     }
   }
 
 
 
-  String _extractGoogleDriveFileId(String url) {
-    final regex = RegExp(r'/d/([a-zA-Z0-9-_]+)');
-    final match = regex.firstMatch(url);
-    return match?.group(1) ?? '';
-  }
+
 }
