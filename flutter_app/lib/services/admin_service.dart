@@ -156,7 +156,7 @@ class AdminService {
 
   Future<void> uploadBook(Map<String, dynamic> bookData) async {
     try {
-      await _apiService.postMultipart('/admin/books', bookData);
+      await _apiService.post('/admin/books', body: bookData);
     } catch (e) {
       rethrow;
     }
@@ -172,7 +172,7 @@ class AdminService {
 
   Future<void> uploadPPT(Map<String, dynamic> pptData) async {
     try {
-      await _apiService.postMultipart('/admin/ppts', pptData);
+      await _apiService.post('/admin/ppts', body: pptData);
     } catch (e) {
       rethrow;
     }
@@ -180,7 +180,7 @@ class AdminService {
 
   Future<void> uploadProject(Map<String, dynamic> projectData) async {
     try {
-      await _apiService.postMultipart('/admin/projects', projectData);
+      await _apiService.post('/admin/projects', body: projectData);
     } catch (e) {
       rethrow;
     }
@@ -188,7 +188,7 @@ class AdminService {
 
   Future<void> uploadAssignment(Map<String, dynamic> assignmentData) async {
     try {
-      await _apiService.postMultipart('/admin/assignments', assignmentData);
+      await _apiService.post('/admin/assignments', body: assignmentData);
     } catch (e) {
       rethrow;
     }

@@ -220,7 +220,7 @@ class _BooksManagementScreenState extends State<BooksManagementScreen> {
                 try {
                   final bookData = {
                     'title': titleController.text,
-                    'author': authorController.text,
+                    'author': authorController.text.isEmpty ? 'Unknown' : authorController.text,
                     'subject': _selectedSubject!.name,
                     'unit': int.parse(unitController.text),
                     'category': _selectedCategory!.id,

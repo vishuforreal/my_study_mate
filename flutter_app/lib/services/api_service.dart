@@ -153,11 +153,16 @@ class ApiService {
 
       // Process data
       for (var entry in data.entries) {
-        if (entry.value is String) {
-          request.fields[entry.key] = entry.value;
-        } else if (entry.value != null) {
+        if (entry.value == null) {
+          continue;
+        } else if (entry.value is String || entry.value is int || entry.value is double || entry.value is bool) {
+          request.fields[entry.key] = entry.value.toString();
+        } else if (entry.value.runtimeType.toString().contains('File')) {
           // Handle File objects
           request.files.add(await http.MultipartFile.fromPath(entry.key, entry.value.path));
+        } else {
+          // Convert other types to string
+          request.fields[entry.key] = entry.value.toString();
         }
       }
 

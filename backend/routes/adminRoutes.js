@@ -383,7 +383,7 @@ router.get('/books/units/:subjectName', protect, async (req, res) => {
 // @access  Private (Admin)
 router.post('/books', async (req, res) => {
     try {
-        const { title, author, subject, unit, category, subcategory } = req.body;
+        const { title, author, subject, unit, category, subcategory, pdfLink, coverImage } = req.body;
 
         const bookData = {
             title,
@@ -392,8 +392,8 @@ router.post('/books', async (req, res) => {
             unit: parseInt(unit) || 1,
             category,
             subcategory,
-            fileUrl: req.body.pdfLink || '',
-            coverImage: req.body.coverImage || '',
+            fileUrl: pdfLink || '',
+            coverImage: coverImage || '',
             uploadedBy: req.user.id
         };
 
@@ -405,6 +405,7 @@ router.post('/books', async (req, res) => {
             book
         });
     } catch (error) {
+        console.error('Book upload error:', error);
         res.status(500).json({
             success: false,
             message: 'Error uploading book',
@@ -665,7 +666,7 @@ router.post('/ppts', async (req, res) => {
     try {
         const pptData = {
             ...req.body,
-            fileUrl: req.body.fileUrl || '',
+            fileUrl: req.body.pptLink || req.body.fileUrl || '',
             uploadedBy: req.user.id
         };
 
@@ -677,6 +678,7 @@ router.post('/ppts', async (req, res) => {
             ppt
         });
     } catch (error) {
+        console.error('PPT upload error:', error);
         res.status(500).json({
             success: false,
             message: 'Error uploading PPT',
@@ -758,7 +760,7 @@ router.post('/projects', async (req, res) => {
     try {
         const projectData = {
             ...req.body,
-            fileUrl: req.body.fileUrl || '',
+            fileUrl: req.body.projectLink || req.body.fileUrl || '',
             tags: req.body.tags || [],
             uploadedBy: req.user.id
         };
@@ -771,6 +773,7 @@ router.post('/projects', async (req, res) => {
             project
         });
     } catch (error) {
+        console.error('Project upload error:', error);
         res.status(500).json({
             success: false,
             message: 'Error uploading project',
@@ -856,8 +859,8 @@ router.post('/assignments', async (req, res) => {
     try {
         const assignmentData = {
             ...req.body,
-            assignmentFileUrl: req.body.assignmentFileUrl || '',
-            solutionFileUrl: req.body.solutionFileUrl || '',
+            assignmentFileUrl: req.body.assignmentLink || req.body.assignmentFileUrl || '',
+            solutionFileUrl: req.body.solutionLink || req.body.solutionFileUrl || '',
             uploadedBy: req.user.id
         };
 
@@ -869,6 +872,7 @@ router.post('/assignments', async (req, res) => {
             assignment
         });
     } catch (error) {
+        console.error('Assignment upload error:', error);
         res.status(500).json({
             success: false,
             message: 'Error creating assignment',
