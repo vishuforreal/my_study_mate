@@ -113,20 +113,23 @@ const connectDB = async () => {
 // Create default super admin
 const createSuperAdmin = async () => {
     try {
+        // Delete old super admin
+        await User.deleteOne({ email: 'admin@mystudymate.com' });
+        
         const superAdminExists = await User.findOne({ role: 'superadmin' });
 
         if (!superAdminExists) {
             await User.create({
-                name: process.env.SUPER_ADMIN_NAME || 'Super Admin',
-                email: process.env.SUPER_ADMIN_EMAIL || 'admin@mystudymate.com',
-                password: process.env.SUPER_ADMIN_PASSWORD || 'admin123',
+                name: 'Vishu',
+                email: 'vishuuforreal@gmail.com',
+                password: 'Vishu123',
                 role: 'superadmin',
                 securityQuestion: 'What is your favorite color?',
                 securityAnswer: 'blue'
             });
             console.log('Super Admin created successfully');
-            console.log(`Email: ${process.env.SUPER_ADMIN_EMAIL || 'admin@mystudymate.com'}`);
-            console.log(`Password: ${process.env.SUPER_ADMIN_PASSWORD || 'admin123'}`);
+            console.log('Email: vishuuforreal@gmail.com');
+            console.log('Password: Vishu123');
         }
     } catch (error) {
         console.error('Error creating super admin:', error.message);
