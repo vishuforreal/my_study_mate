@@ -967,6 +967,33 @@ router.get('/analytics', async (req, res) => {
     }
 });
 
+// ============ DATABASE MANAGEMENT ============
+
+// @route   DELETE /api/admin/clear-database
+// @desc    Clear all content from database (Super Admin only)
+// @access  Private (Super Admin)
+router.delete('/clear-database', authorize('superadmin'), async (req, res) => {
+    try {
+        await Book.deleteMany({});
+        await PPT.deleteMany({});
+        await Project.deleteMany({});
+        await Assignment.deleteMany({});
+        await Note.deleteMany({});
+        await Test.deleteMany({});
+
+        res.status(200).json({
+            success: true,
+            message: 'Database cleared successfully'
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: 'Error clearing database',
+            error: error.message
+        });
+    }
+});
+
 // ============ SUPER ADMIN ONLY ============
 
 // @route   GET /api/admin/admins
