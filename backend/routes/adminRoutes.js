@@ -28,9 +28,12 @@ router.get('/notes/units/:subjectName', protect, async (req, res) => {
             }
         }
         
+        console.log('Query for notes:', query);
         const units = await Note.find(query)
             .select('unit title notesFileUrl')
             .sort({ unit: 1 });
+        
+        console.log('Found units:', units.length);
 
         const uniqueUnits = [...new Set(units.map(note => note.unit))]
             .sort((a, b) => a - b)
