@@ -23,8 +23,15 @@ router.get('/', protect, async (req, res) => {
         }
 
         console.log('Query:', JSON.stringify(query));
-        const subjects = await Subject.find(query).sort({ name: 1 });
-        console.log('Found subjects:', subjects.length);
+        let subjects = await Subject.find(query).sort({ name: 1 });
+        console.log('Found subjects with query:', subjects.length);
+        
+        // If no subjects found for student, show all subjects as fallback
+        if (subjects.length === 0 && req.user.role === 'student') {
+            console.log('No subjects found, showing all subjects as fallback');
+            subjects = await Subject.find({}).sort({ name: 1 });
+            console.log('All subjects:', subjects.length);
+        }
 
         res.status(200).json({
             success: true,
