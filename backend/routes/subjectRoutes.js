@@ -16,6 +16,7 @@ router.get('/', protect, async (req, res) => {
             if (req.user.subcategory) {
                 query.subcategory = req.user.subcategory;
             }
+            console.log('Student:', req.user.name, 'Category:', req.user.category, 'Subcategory:', req.user.subcategory);
         } else {
             // For admin/superadmin, allow query parameters
             const { category, subcategory } = req.query;
@@ -23,7 +24,9 @@ router.get('/', protect, async (req, res) => {
             if (subcategory) query.subcategory = subcategory;
         }
 
+        console.log('Query:', JSON.stringify(query));
         const subjects = await Subject.find(query).sort({ name: 1 });
+        console.log('Found subjects:', subjects.length);
 
         res.status(200).json({
             success: true,
