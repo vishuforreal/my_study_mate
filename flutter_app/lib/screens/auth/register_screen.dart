@@ -221,7 +221,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   items: AppConstants.securityQuestions.map((question) {
                     return DropdownMenuItem(
                       value: question,
-                      child: Text(question, overflow: TextOverflow.ellipsis),
+                      child: SizedBox(
+                        width: 200,
+                        child: Text(
+                          question,
+                          overflow: TextOverflow.ellipsis,
+                          maxLines: 1,
+                        ),
+                      ),
                     );
                   }).toList(),
                   onChanged: (value) {

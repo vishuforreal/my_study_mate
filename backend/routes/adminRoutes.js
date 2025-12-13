@@ -207,8 +207,8 @@ router.post('/notes', async (req, res) => {
             unit: parseInt(unit) || 1,
             category,
             subcategory,
-            notesFileUrl: '',
-            coverImageUrl: '',
+            notesFileUrl: req.body.pdfLink || '',
+            coverImageUrl: req.body.coverImageUrl || '',
             uploadedBy: req.user.id
         };
 

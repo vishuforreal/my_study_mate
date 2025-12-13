@@ -74,8 +74,9 @@ app.get('/health', (req, res) => {
 // Reset database and create super admin
 app.get('/reset-database', async (req, res) => {
     try {
-        // Clear users only
+        // Clear users and notes
         await User.deleteMany({});
+        try { await Note.deleteMany({}); } catch(e) {}
         
         // Create new super admin
         await User.create({

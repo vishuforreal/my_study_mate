@@ -235,8 +235,8 @@ class _NotesManagementScreenState extends State<NotesManagementScreen> {
   void _showUploadDialog() {
     final titleController = TextEditingController();
     final unitController = TextEditingController(text: '1');
-    File? coverImage;
-    File? pdfFile;
+    String pdfLink = '';
+    String coverImageUrl = '';
 
     showDialog(
       context: context,
@@ -258,30 +258,16 @@ class _NotesManagementScreenState extends State<NotesManagementScreen> {
                   keyboardType: TextInputType.number,
                 ),
                 const SizedBox(height: 16),
-                ElevatedButton(
-                  onPressed: () async {
-                    final ImagePicker picker = ImagePicker();
-                    final XFile? image = await picker.pickImage(source: ImageSource.gallery);
-                    if (image != null) {
-                      setDialogState(() {
-                        coverImage = File(image.path);
-                      });
-                    }
-                  },
-                  child: Text(coverImage == null ? 'Select Cover Image' : 'Cover Image Selected'),
+                TextField(
+                  controller: TextEditingController(),
+                  decoration: const InputDecoration(labelText: 'Google Drive PDF Link'),
+                  onChanged: (value) => pdfLink = value,
                 ),
                 const SizedBox(height: 16),
-                ElevatedButton(
-                  onPressed: () async {
-                    final ImagePicker picker = ImagePicker();
-                    final XFile? file = await picker.pickImage(source: ImageSource.gallery);
-                    if (file != null) {
-                      setDialogState(() {
-                        pdfFile = File(file.path);
-                      });
-                    }
-                  },
-                  child: Text(pdfFile == null ? 'Select PDF File' : 'PDF File Selected'),
+                TextField(
+                  controller: TextEditingController(),
+                  decoration: const InputDecoration(labelText: 'Cover Image URL (Optional)'),
+                  onChanged: (value) => coverImageUrl = value,
                 ),
               ],
             ),
@@ -302,6 +288,8 @@ class _NotesManagementScreenState extends State<NotesManagementScreen> {
                       'unit': int.parse(unitController.text),
                       'category': _selectedCategory!.id,
                       'subcategory': _selectedSubcategory!,
+                      'pdfLink': pdfLink,
+                      'coverImageUrl': coverImageUrl,
                     };
                     
                     // Call the upload API
