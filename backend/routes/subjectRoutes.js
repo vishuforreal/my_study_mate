@@ -25,6 +25,10 @@ router.get('/', protect, async (req, res) => {
         console.log('Query:', JSON.stringify(query));
         const subjects = await Subject.find(query).sort({ name: 1 });
         console.log('Found subjects with query:', subjects.length);
+        
+        // Debug: show all subjects to see structure
+        const allSubjects = await Subject.find({}).limit(5);
+        console.log('Sample subjects:', allSubjects.map(s => ({ name: s.name, category: s.category, subcategory: s.subcategory })));
 
         res.status(200).json({
             success: true,
