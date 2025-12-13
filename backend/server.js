@@ -163,33 +163,26 @@ const connectDB = async () => {
 // Create default super admin
 const createSuperAdmin = async () => {
     try {
-        // Clear all collections
-        await User.deleteMany({});
-        await Note.deleteMany({});
-        await Book.deleteMany({});
-        await Test.deleteMany({});
-        await PPT.deleteMany({});
-        await Project.deleteMany({});
-        await Assignment.deleteMany({});
+        // Check if super admin exists
+        const existingSuperAdmin = await User.findOne({ role: 'superadmin' });
         
-        console.log('All collections cleared');
-        
-        // Create new super admin
-        await User.create({
-            name: 'Vishwajeet',
-            email: 'vishuuforreal@gmail.com',
-            password: 'Vishu123',
-            role: 'superadmin',
-            securityQuestion: 'What is your mothers maiden name?',
-            securityAnswer: 'Rina'
-        });
-        
-        console.log('Super Admin created successfully');
-        console.log('Name: Vishwajeet');
-        console.log('Email: vishuuforreal@gmail.com');
-        console.log('Password: Vishu123');
-        console.log('Security Question: What is your mothers maiden name?');
-        console.log('Security Answer: Rina');
+        if (!existingSuperAdmin) {
+            // Create new super admin only if none exists
+            await User.create({
+                name: 'Vishwajeet',
+                email: 'vishuuforreal@gmail.com',
+                password: 'Vishu123',
+                role: 'superadmin',
+                securityQuestion: 'What is your mothers maiden name?',
+                securityAnswer: 'Rina'
+            });
+            
+            console.log('Super Admin created successfully');
+            console.log('Email: vishuuforreal@gmail.com');
+            console.log('Password: Vishu123');
+        } else {
+            console.log('Super Admin already exists');
+        }
     } catch (error) {
         console.error('Error creating super admin:', error.message);
     }

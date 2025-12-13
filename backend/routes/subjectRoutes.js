@@ -23,10 +23,9 @@ router.get('/', protect, async (req, res) => {
             if (subcategory) query.subcategory = subcategory;
         }
 
-        const subjects = await Subject.find(query)
-            .populate('category', 'name type')
-            .populate('createdBy', 'name email')
-            .sort({ name: 1 });
+        console.log('Subject query:', query);
+        const subjects = await Subject.find(query).sort({ name: 1 });
+        console.log('Found subjects:', subjects.length);
 
         res.status(200).json({
             success: true,
@@ -34,6 +33,7 @@ router.get('/', protect, async (req, res) => {
             subjects
         });
     } catch (error) {
+        console.error('Subject error:', error);
         res.status(500).json({
             success: false,
             message: 'Error fetching subjects',
