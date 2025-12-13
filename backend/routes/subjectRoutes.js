@@ -4,11 +4,10 @@ const { protect, authorize } = require('../middleware/authMiddleware');
 const Subject = require('../models/Subject');
 
 // @route   GET /api/subjects
-// @desc    Get subjects from notes (for students - filtered by their category)
+// @desc    Get subjects by category and subcategory (for students - filtered by their category)
 // @access  Private
 router.get('/', protect, async (req, res) => {
     try {
-        const Note = require('../models/Note');
         let query = {};
         
         // If user is student, filter by their category/subcategory
@@ -17,17 +16,14 @@ router.get('/', protect, async (req, res) => {
             if (req.user.subcategory) {
                 query.subcategory = req.user.subcategory;
             }
+        } else {
+            // For admin/superadmin, allow query parameters
+            const { category, subcategory } = req.query;
+            if (category) query.category = category;
+            if (subcategory) query.subcategory = subcategory;
         }
 
-        console.log('Notes query for subjects:', query);
-        const notes = await Note.find(query).distinct('subject');
-        console.log('Found subjects from notes:', notes.length);
-        
-        const subjects = notes.map(subject => ({
-            name: subject,
-            category: req.user.category,
-            subcategory: req.user.subcategory || ''
-        }));
+        const subjects = await Subject.find(query).sort({ name: 1 });
 
         res.status(200).json({
             success: true,
@@ -35,7 +31,6 @@ router.get('/', protect, async (req, res) => {
             subjects
         });
     } catch (error) {
-        console.error('Subject error:', error);
         res.status(500).json({
             success: false,
             message: 'Error fetching subjects',
@@ -55,10 +50,7 @@ router.get('/admin', protect, authorize('admin', 'superadmin'), async (req, res)
         if (category) query.category = category;
         if (subcategory) query.subcategory = subcategory;
 
-        const subjects = await Subject.find(query)
-            .populate('category', 'name type')
-            .populate('createdBy', 'name email')
-            .sort({ name: 1 });
+        const subjects = await Subject.find(query).sort({ name: 1 });
 
         res.status(200).json({
             success: true,
@@ -96,7 +88,7 @@ router.post('/', protect, authorize('admin', 'superadmin'), async (req, res) => 
             createdBy: req.user.id
         });
 
-        await subject.populate('category', 'name type');
+
 
         res.status(201).json({
             success: true,
@@ -123,7 +115,7 @@ router.put('/:id', protect, authorize('admin', 'superadmin'), async (req, res) =
             req.params.id,
             { name },
             { new: true, runValidators: true }
-        ).populate('category', 'name type');
+);
 
         if (!subject) {
             return res.status(404).json({
