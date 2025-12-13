@@ -14,6 +14,7 @@ const studentRoutes = require('./routes/studentRoutes');
 const adminRoutes = require('./routes/adminRoutes');
 const categoryRoutes = require('./routes/categoryRoutes');
 const subjectRoutes = require('./routes/subjectRoutes');
+const clearRoutes = require('./routes/clearRoutes');
 
 // Import models
 const User = require('./models/User');
@@ -108,6 +109,7 @@ app.use('/api/student', studentRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/categories', categoryRoutes);
 app.use('/api/subjects', subjectRoutes);
+app.use('/api', clearRoutes);
 
 // 404 handler
 app.use((req, res) => {
