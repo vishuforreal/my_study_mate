@@ -71,6 +71,21 @@ app.get('/health', (req, res) => {
     res.json({ status: 'OK', timestamp: new Date().toISOString() });
 });
 
+// Clear notes only
+app.get('/clear-notes', async (req, res) => {
+    try {
+        const mongoose = require('mongoose');
+        await mongoose.connection.db.collection('notes').deleteMany({});
+        
+        res.json({ 
+            success: true, 
+            message: 'All notes deleted successfully'
+        });
+    } catch (error) {
+        res.json({ success: false, error: error.message });
+    }
+});
+
 // Reset database and create super admin
 app.get('/reset-database', async (req, res) => {
     try {
