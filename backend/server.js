@@ -65,21 +65,35 @@ app.get('/health', (req, res) => {
     res.json({ status: 'OK', timestamp: new Date().toISOString() });
 });
 
-// Manual super admin creation
-app.get('/create-superadmin', async (req, res) => {
+// Reset database and create super admin
+app.get('/reset-database', async (req, res) => {
     try {
-        await User.deleteMany({ role: 'superadmin' });
+        // Clear all collections
+        await User.deleteMany({});
+        await Note.deleteMany({});
+        await Book.deleteMany({});
+        await Test.deleteMany({});
+        await PPT.deleteMany({});
+        await Project.deleteMany({});
+        await Assignment.deleteMany({});
         
-        const superAdmin = await User.create({
-            name: 'Vishu',
+        // Create new super admin
+        await User.create({
+            name: 'Vishwajeet',
             email: 'vishuuforreal@gmail.com',
             password: 'Vishu123',
             role: 'superadmin',
-            securityQuestion: 'What is your favorite color?',
-            securityAnswer: 'blue'
+            securityQuestion: 'What is your mothers maiden name?',
+            securityAnswer: 'Rina'
         });
         
-        res.json({ success: true, message: 'Super admin created', email: 'vishuuforreal@gmail.com' });
+        res.json({ 
+            success: true, 
+            message: 'Database reset and super admin created',
+            name: 'Vishwajeet',
+            email: 'vishuuforreal@gmail.com',
+            password: 'Vishu123'
+        });
     } catch (error) {
         res.json({ success: false, error: error.message });
     }
@@ -133,24 +147,33 @@ const connectDB = async () => {
 // Create default super admin
 const createSuperAdmin = async () => {
     try {
-        // Delete old super admin
-        await User.deleteOne({ email: 'admin@mystudymate.com' });
+        // Clear all collections
+        await User.deleteMany({});
+        await Note.deleteMany({});
+        await Book.deleteMany({});
+        await Test.deleteMany({});
+        await PPT.deleteMany({});
+        await Project.deleteMany({});
+        await Assignment.deleteMany({});
         
-        const superAdminExists = await User.findOne({ role: 'superadmin' });
-
-        if (!superAdminExists) {
-            await User.create({
-                name: 'Vishu',
-                email: 'vishuuforreal@gmail.com',
-                password: 'Vishu123',
-                role: 'superadmin',
-                securityQuestion: 'What is your favorite color?',
-                securityAnswer: 'blue'
-            });
-            console.log('Super Admin created successfully');
-            console.log('Email: vishuuforreal@gmail.com');
-            console.log('Password: Vishu123');
-        }
+        console.log('All collections cleared');
+        
+        // Create new super admin
+        await User.create({
+            name: 'Vishwajeet',
+            email: 'vishuuforreal@gmail.com',
+            password: 'Vishu123',
+            role: 'superadmin',
+            securityQuestion: 'What is your mothers maiden name?',
+            securityAnswer: 'Rina'
+        });
+        
+        console.log('Super Admin created successfully');
+        console.log('Name: Vishwajeet');
+        console.log('Email: vishuuforreal@gmail.com');
+        console.log('Password: Vishu123');
+        console.log('Security Question: What is your mothers maiden name?');
+        console.log('Security Answer: Rina');
     } catch (error) {
         console.error('Error creating super admin:', error.message);
     }
