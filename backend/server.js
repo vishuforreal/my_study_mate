@@ -72,28 +72,7 @@ app.get('/health', (req, res) => {
     res.json({ status: 'OK', timestamp: new Date().toISOString() });
 });
 
-// Clear database endpoint
-app.delete('/api/clear-database', async (req, res) => {
-    try {
-        await Book.deleteMany({});
-        await PPT.deleteMany({});
-        await Project.deleteMany({});
-        await Assignment.deleteMany({});
-        await Note.deleteMany({});
-        await Test.deleteMany({});
 
-        res.status(200).json({
-            success: true,
-            message: 'Database cleared successfully'
-        });
-    } catch (error) {
-        res.status(500).json({
-            success: false,
-            message: 'Error clearing database',
-            error: error.message
-        });
-    }
-});
 
 // Reset database and create super admin
 app.get('/reset-database', async (req, res) => {
