@@ -4,9 +4,48 @@ const { protect, authorize } = require('../middleware/authMiddleware');
 const Subject = require('../models/Subject');
 
 // @route   GET /api/subjects
-// @desc    Get subjects by category and subcategory
+// @desc    Get subjects by category and subcategory (for students - filtered by their category)
 // @access  Private
 router.get('/', protect, async (req, res) => {
+    try {
+        let query = {};
+        
+        // If user is student, filter by their category/subcategory
+        if (req.user.role === 'student') {
+            query.category = req.user.category;
+            if (req.user.subcategory) {
+                query.subcategory = req.user.subcategory;
+            }
+        } else {
+            // For admin/superadmin, allow query parameters
+            const { category, subcategory } = req.query;
+            if (category) query.category = category;
+            if (subcategory) query.subcategory = subcategory;
+        }
+
+        const subjects = await Subject.find(query)
+            .populate('category', 'name type')
+            .populate('createdBy', 'name email')
+            .sort({ name: 1 });
+
+        res.status(200).json({
+            success: true,
+            count: subjects.length,
+            subjects
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: 'Error fetching subjects',
+            error: error.message
+        });
+    }
+});
+
+// @route   GET /api/subjects/admin
+// @desc    Get all subjects (admin only)
+// @access  Private (Admin)
+router.get('/admin', protect, authorize('admin', 'superadmin'), async (req, res) => {
     try {
         const { category, subcategory } = req.query;
         
