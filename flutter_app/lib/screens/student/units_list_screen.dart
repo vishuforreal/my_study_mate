@@ -114,13 +114,7 @@ class _UnitsListScreenState extends State<UnitsListScreen> {
 
     try {
       final Uri url = Uri.parse(pdfUrl);
-      if (await canLaunchUrl(url)) {
-        await launchUrl(url, mode: LaunchMode.externalApplication);
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Could not open PDF')),
-        );
-      }
+      await launchUrl(url, mode: LaunchMode.inAppWebView);
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error opening PDF: $e')),
