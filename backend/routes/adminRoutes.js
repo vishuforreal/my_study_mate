@@ -11,7 +11,52 @@ const PPT = require('../models/PPT');
 const Project = require('../models/Project');
 const Assignment = require('../models/Assignment');
 
-// All routes require admin or superadmin role
+// ============ SHARED ROUTES (Students + Admins) ============
+
+// @route   GET /api/admin/notes/units/:subjectName
+// @desc    Get units for a subject
+// @access  Private (Admin/Student)
+router.get('/notes/units/:subjectName', protect, async (req, res) => {
+    try {
+        let query = { subject: req.params.subjectName };
+        
+        // If user is student, filter by their category/subcategory
+        if (req.user.role === 'student') {
+            query.category = req.user.category;
+            if (req.user.subcategory) {
+                query.subcategory = req.user.subcategory;
+            }
+        }
+        
+        const units = await Note.find(query)
+            .select('unit title notesFileUrl')
+            .sort({ unit: 1 });
+
+        const uniqueUnits = [...new Set(units.map(note => note.unit))]
+            .sort((a, b) => a - b)
+            .map(unit => {
+                const noteData = units.find(note => note.unit === unit);
+                return {
+                    unit,
+                    title: noteData?.title || `Unit ${unit}`,
+                    pdfUrl: noteData?.notesFileUrl || ''
+                };
+            });
+
+        res.status(200).json({
+            success: true,
+            units: uniqueUnits
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: 'Error fetching units',
+            error: error.message
+        });
+    }
+});
+
+// All routes below require admin or superadmin role
 router.use(protect);
 router.use(authorize('admin', 'superadmin'));
 
@@ -132,38 +177,7 @@ router.get('/notes', async (req, res) => {
     }
 });
 
-// @route   GET /api/admin/notes/units/:subjectName
-// @desc    Get units for a subject
-// @access  Private (Admin/Student)
-router.get('/notes/units/:subjectName', async (req, res) => {
-    try {
-        const units = await Note.find({ subject: req.params.subjectName })
-            .select('unit title notesFileUrl')
-            .sort({ unit: 1 });
 
-        const uniqueUnits = [...new Set(units.map(note => note.unit))]
-            .sort((a, b) => a - b)
-            .map(unit => {
-                const noteData = units.find(note => note.unit === unit);
-                return {
-                    unit,
-                    title: noteData?.title || `Unit ${unit}`,
-                    pdfUrl: noteData?.notesFileUrl || ''
-                };
-            });
-
-        res.status(200).json({
-            success: true,
-            units: uniqueUnits
-        });
-    } catch (error) {
-        res.status(500).json({
-            success: false,
-            message: 'Error fetching units',
-            error: error.message
-        });
-    }
-});
 
 // @route   POST /api/admin/notes/simple
 // @desc    Simple note upload without files
