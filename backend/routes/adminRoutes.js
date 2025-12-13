@@ -309,6 +309,32 @@ router.delete('/notes/:id', async (req, res) => {
     }
 });
 
+// @route   DELETE /api/admin/notes/unit/:subject/:unit
+// @desc    Delete specific unit from subject
+// @access  Private (Admin)
+router.delete('/notes/unit/:subject/:unit', async (req, res) => {
+    try {
+        const { subject, unit } = req.params;
+        
+        const result = await Note.deleteMany({ 
+            subject: subject, 
+            unit: parseInt(unit) 
+        });
+
+        res.status(200).json({
+            success: true,
+            message: `Unit ${unit} deleted successfully`,
+            deletedCount: result.deletedCount
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: 'Error deleting unit',
+            error: error.message
+        });
+    }
+});
+
 // ============ BOOKS MANAGEMENT ============
 
 // @route   POST /api/admin/books
