@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../models/subject_model.dart';
 import '../../services/subject_service.dart';
 import '../../services/api_service.dart';
@@ -111,15 +112,20 @@ class _UnitsListScreenState extends State<UnitsListScreen> {
       return;
     }
 
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => PDFViewerScreen(
-          pdfUrl: pdfUrl,
-          title: unit['title'],
-        ),
-      ),
-    );
+    try {
+      final Uri url = Uri.parse(pdfUrl);
+      if (await canLaunchUrl(url)) {
+        await launchUrl(url, mode: LaunchMode.externalApplication);
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Could not open PDF')),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error opening PDF: $e')),
+      );
+    }
   }
 
   Future<void> _deleteUnit(int unitNumber) async {

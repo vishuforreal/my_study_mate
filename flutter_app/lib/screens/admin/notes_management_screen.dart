@@ -464,31 +464,21 @@ class _NotesManagementScreenState extends State<NotesManagementScreen> {
     }
   }
 
-  void _viewPDF(String pdfUrl) {
-    Navigator.pop(context); // Close dialog first
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => Scaffold(
-          appBar: AppBar(title: const Text('PDF Viewer')),
-          body: Center(
-            child: ElevatedButton(
-              onPressed: () async {
-                final Uri url = Uri.parse(pdfUrl);
-                if (await canLaunchUrl(url)) {
-                  await launchUrl(url, mode: LaunchMode.externalApplication);
-                } else {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Could not open PDF')),
-                  );
-                }
-              },
-              child: const Text('Open PDF'),
-            ),
-          ),
-        ),
-      ),
-    );
+  void _viewPDF(String pdfUrl) async {
+    try {
+      final Uri url = Uri.parse(pdfUrl);
+      if (await canLaunchUrl(url)) {
+        await launchUrl(url, mode: LaunchMode.externalApplication);
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Could not open PDF')),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error opening PDF: $e')),
+      );
+    }
   }
 
   Future<void> _deleteUnit(int unitNumber) async {
