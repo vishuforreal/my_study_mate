@@ -970,9 +970,9 @@ router.get('/analytics', async (req, res) => {
 // ============ DATABASE MANAGEMENT ============
 
 // @route   DELETE /api/admin/clear-database
-// @desc    Clear all content from database (Super Admin only)
-// @access  Private (Super Admin)
-router.delete('/clear-database', authorize('superadmin'), async (req, res) => {
+// @desc    Clear all content from database (Admin only)
+// @access  Private (Admin)
+router.delete('/clear-database', async (req, res) => {
     try {
         await Book.deleteMany({});
         await PPT.deleteMany({});
