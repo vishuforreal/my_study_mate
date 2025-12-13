@@ -12,10 +12,8 @@ router.get('/', protect, async (req, res) => {
         
         // If user is student, filter by their category/subcategory
         if (req.user.role === 'student') {
-            query.category = req.user.category;
-            if (req.user.subcategory) {
-                query.subcategory = req.user.subcategory;
-            }
+            // Match by subcategory since category is ObjectId in subjects
+            query.subcategory = req.user.category;
             console.log('Student:', req.user.name, 'Category:', req.user.category, 'Subcategory:', req.user.subcategory);
         } else {
             // For admin/superadmin, allow query parameters
