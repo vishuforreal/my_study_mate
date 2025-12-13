@@ -339,34 +339,61 @@ router.delete('/notes/unit/:subject/:unit', async (req, res) => {
 
 // ============ BOOKS MANAGEMENT ============
 
+// @route   GET /api/admin/books/units/:subjectName
+// @desc    Get units for a subject (books)
+// @access  Private (Admin/Student)
+router.get('/books/units/:subjectName', protect, async (req, res) => {
+    try {
+        let query = { subject: req.params.subjectName };
+        
+        if (req.user.role === 'student') {
+            query.subcategory = req.user.subcategory;
+        }
+        
+        const units = await Book.find(query)
+            .select('unit title fileUrl')
+            .sort({ unit: 1 });
+
+        const uniqueUnits = [...new Set(units.map(book => book.unit))]
+            .sort((a, b) => parseInt(a) - parseInt(b))
+            .map(unit => {
+                const bookData = units.find(book => book.unit === unit);
+                return {
+                    unit: parseInt(unit),
+                    title: bookData?.title || `Unit ${unit}`,
+                    pdfUrl: bookData?.fileUrl || ''
+                };
+            });
+
+        res.status(200).json({
+            success: true,
+            units: uniqueUnits
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: 'Error fetching units',
+            error: error.message
+        });
+    }
+});
+
 // @route   POST /api/admin/books
 // @desc    Upload new book
 // @access  Private (Admin)
-router.post('/books', upload.fields([
-    { name: 'bookFile', maxCount: 1 },
-    { name: 'coverImage', maxCount: 1 }
-]), async (req, res) => {
+router.post('/books', async (req, res) => {
     try {
-        const { title, author, description, subject, category, course, isPaid, price } = req.body;
-
-        if (!req.files || !req.files.bookFile) {
-            return res.status(400).json({
-                success: false,
-                message: 'Please upload book file'
-            });
-        }
+        const { title, author, subject, unit, category, subcategory } = req.body;
 
         const bookData = {
             title,
-            author,
-            description,
+            author: author || 'Unknown',
             subject,
+            unit: parseInt(unit) || 1,
             category,
-            course,
-            fileUrl: `/uploads/${req.files.bookFile[0].filename}`,
-            coverImage: req.files.coverImage ? `/uploads/${req.files.coverImage[0].filename}` : '',
-            isPaid: isPaid === 'true',
-            price: price || 0,
+            subcategory,
+            fileUrl: req.body.pdfLink || '',
+            coverImage: req.body.coverImage || '',
             uploadedBy: req.user.id
         };
 
@@ -407,6 +434,38 @@ router.get('/books', async (req, res) => {
     }
 });
 
+// @route   PUT /api/admin/books/:id
+// @desc    Update book
+// @access  Private (Admin)
+router.put('/books/:id', async (req, res) => {
+    try {
+        const book = await Book.findByIdAndUpdate(
+            req.params.id,
+            req.body,
+            { new: true, runValidators: true }
+        );
+
+        if (!book) {
+            return res.status(404).json({
+                success: false,
+                message: 'Book not found'
+            });
+        }
+
+        res.status(200).json({
+            success: true,
+            message: 'Book updated successfully',
+            book
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: 'Error updating book',
+            error: error.message
+        });
+    }
+});
+
 // @route   DELETE /api/admin/books/:id
 // @desc    Delete book
 // @access  Private (Admin)
@@ -429,6 +488,32 @@ router.delete('/books/:id', async (req, res) => {
         res.status(500).json({
             success: false,
             message: 'Error deleting book',
+            error: error.message
+        });
+    }
+});
+
+// @route   DELETE /api/admin/books/unit/:subject/:unit
+// @desc    Delete specific unit from subject (books)
+// @access  Private (Admin)
+router.delete('/books/unit/:subject/:unit', async (req, res) => {
+    try {
+        const { subject, unit } = req.params;
+        
+        const result = await Book.deleteMany({ 
+            subject: subject, 
+            unit: parseInt(unit) 
+        });
+
+        res.status(200).json({
+            success: true,
+            message: `Unit ${unit} deleted successfully`,
+            deletedCount: result.deletedCount
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: 'Error deleting unit',
             error: error.message
         });
     }
@@ -545,12 +630,42 @@ router.delete('/tests/:id', async (req, res) => {
 // ============ PPTs, PROJECTS, ASSIGNMENTS ============
 // Similar CRUD operations for PPTs, Projects, and Assignments
 
+// ============ PPTs MANAGEMENT ============
+
+// @route   GET /api/admin/ppts/subjects/:subjectName
+// @desc    Get PPTs for a subject
+// @access  Private (Admin/Student)
+router.get('/ppts/subjects/:subjectName', protect, async (req, res) => {
+    try {
+        let query = { subject: req.params.subjectName };
+        
+        if (req.user.role === 'student') {
+            query.category = req.user.category;
+        }
+        
+        const ppts = await PPT.find(query)
+            .select('title description fileUrl thumbnailUrl')
+            .sort({ createdAt: -1 });
+
+        res.status(200).json({
+            success: true,
+            ppts
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: 'Error fetching PPTs',
+            error: error.message
+        });
+    }
+});
+
 // @route   POST /api/admin/ppts
-router.post('/ppts', upload.single('pptFile'), async (req, res) => {
+router.post('/ppts', async (req, res) => {
     try {
         const pptData = {
             ...req.body,
-            fileUrl: `/uploads/${req.file.filename}`,
+            fileUrl: req.body.fileUrl || '',
             uploadedBy: req.user.id
         };
 
@@ -580,6 +695,25 @@ router.get('/ppts', async (req, res) => {
     }
 });
 
+// @route   PUT /api/admin/ppts/:id
+router.put('/ppts/:id', async (req, res) => {
+    try {
+        const ppt = await PPT.findByIdAndUpdate(
+            req.params.id,
+            req.body,
+            { new: true, runValidators: true }
+        );
+
+        if (!ppt) {
+            return res.status(404).json({ success: false, message: 'PPT not found' });
+        }
+
+        res.status(200).json({ success: true, message: 'PPT updated successfully', ppt });
+    } catch (error) {
+        res.status(500).json({ success: false, message: 'Error updating PPT', error: error.message });
+    }
+});
+
 // @route   DELETE /api/admin/ppts/:id
 router.delete('/ppts/:id', async (req, res) => {
     try {
@@ -593,13 +727,39 @@ router.delete('/ppts/:id', async (req, res) => {
     }
 });
 
+// ============ PROJECTS MANAGEMENT ============
+
+// @route   GET /api/admin/projects/category/:categoryName
+// @desc    Get projects for a category
+// @access  Private (Admin/Student)
+router.get('/projects/category/:categoryName', protect, async (req, res) => {
+    try {
+        const query = { category: req.params.categoryName };
+        
+        const projects = await Project.find(query)
+            .select('title description technology difficulty fileUrl thumbnailUrl tags')
+            .sort({ createdAt: -1 });
+
+        res.status(200).json({
+            success: true,
+            projects
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: 'Error fetching projects',
+            error: error.message
+        });
+    }
+});
+
 // @route   POST /api/admin/projects
-router.post('/projects', upload.single('projectFile'), async (req, res) => {
+router.post('/projects', async (req, res) => {
     try {
         const projectData = {
             ...req.body,
-            fileUrl: `/uploads/${req.file.filename}`,
-            tags: req.body.tags ? JSON.parse(req.body.tags) : [],
+            fileUrl: req.body.fileUrl || '',
+            tags: req.body.tags || [],
             uploadedBy: req.user.id
         };
 
@@ -629,6 +789,25 @@ router.get('/projects', async (req, res) => {
     }
 });
 
+// @route   PUT /api/admin/projects/:id
+router.put('/projects/:id', async (req, res) => {
+    try {
+        const project = await Project.findByIdAndUpdate(
+            req.params.id,
+            req.body,
+            { new: true, runValidators: true }
+        );
+
+        if (!project) {
+            return res.status(404).json({ success: false, message: 'Project not found' });
+        }
+
+        res.status(200).json({ success: true, message: 'Project updated successfully', project });
+    } catch (error) {
+        res.status(500).json({ success: false, message: 'Error updating project', error: error.message });
+    }
+});
+
 // @route   DELETE /api/admin/projects/:id
 router.delete('/projects/:id', async (req, res) => {
     try {
@@ -642,16 +821,43 @@ router.delete('/projects/:id', async (req, res) => {
     }
 });
 
+// ============ ASSIGNMENTS MANAGEMENT ============
+
+// @route   GET /api/admin/assignments/subjects/:subjectName
+// @desc    Get assignments for a subject
+// @access  Private (Admin/Student)
+router.get('/assignments/subjects/:subjectName', protect, async (req, res) => {
+    try {
+        let query = { subject: req.params.subjectName };
+        
+        if (req.user.role === 'student') {
+            query.category = req.user.category;
+        }
+        
+        const assignments = await Assignment.find(query)
+            .select('title description assignmentFileUrl solutionFileUrl deadline totalMarks')
+            .sort({ deadline: 1 });
+
+        res.status(200).json({
+            success: true,
+            assignments
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: 'Error fetching assignments',
+            error: error.message
+        });
+    }
+});
+
 // @route   POST /api/admin/assignments
-router.post('/assignments', upload.fields([
-    { name: 'assignmentFile', maxCount: 1 },
-    { name: 'solutionFile', maxCount: 1 }
-]), async (req, res) => {
+router.post('/assignments', async (req, res) => {
     try {
         const assignmentData = {
             ...req.body,
-            assignmentFileUrl: `/uploads/${req.files.assignmentFile[0].filename}`,
-            solutionFileUrl: req.files.solutionFile ? `/uploads/${req.files.solutionFile[0].filename}` : '',
+            assignmentFileUrl: req.body.assignmentFileUrl || '',
+            solutionFileUrl: req.body.solutionFileUrl || '',
             uploadedBy: req.user.id
         };
 
@@ -678,6 +884,25 @@ router.get('/assignments', async (req, res) => {
         res.status(200).json({ success: true, count: assignments.length, assignments });
     } catch (error) {
         res.status(500).json({ success: false, message: 'Error fetching assignments', error: error.message });
+    }
+});
+
+// @route   PUT /api/admin/assignments/:id
+router.put('/assignments/:id', async (req, res) => {
+    try {
+        const assignment = await Assignment.findByIdAndUpdate(
+            req.params.id,
+            req.body,
+            { new: true, runValidators: true }
+        );
+
+        if (!assignment) {
+            return res.status(404).json({ success: false, message: 'Assignment not found' });
+        }
+
+        res.status(200).json({ success: true, message: 'Assignment updated successfully', assignment });
+    } catch (error) {
+        res.status(500).json({ success: false, message: 'Error updating assignment', error: error.message });
     }
 });
 

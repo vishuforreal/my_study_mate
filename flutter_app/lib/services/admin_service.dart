@@ -209,4 +209,64 @@ class AdminService {
       rethrow;
     }
   }
+
+  // ============ BOOKS MANAGEMENT ============
+
+  Future<void> deleteBook(String bookId) async {
+    try {
+      await _apiService.delete('/admin/books/$bookId');
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<void> deleteBookUnit(String subjectName, int unitNumber) async {
+    try {
+      await _apiService.delete('/admin/books/unit/$subjectName/$unitNumber');
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  // ============ PPTs MANAGEMENT ============
+
+  Future<void> deletePPT(String pptId) async {
+    try {
+      await _apiService.delete('/admin/ppts/$pptId');
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  // ============ PROJECTS MANAGEMENT ============
+
+  Future<List<Map<String, dynamic>>> getProjectsByCategory(String category) async {
+    try {
+      final response = await _apiService.get('/admin/projects/category/$category');
+      if (response['success']) {
+        return List<Map<String, dynamic>>.from(response['projects']);
+      }
+      return [];
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<void> deleteProject(String projectId) async {
+    try {
+      await _apiService.delete('/admin/projects/$projectId');
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  // ============ ASSIGNMENTS MANAGEMENT ============
+
+  Future<void> deleteAssignment(String assignmentId) async {
+    try {
+      await _apiService.delete('/admin/assignments/$assignmentId');
+    } catch (e) {
+      rethrow;
+    }
+  }
 }

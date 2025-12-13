@@ -1,4 +1,9 @@
 import 'package:flutter/material.dart';
+import 'notes_management_screen.dart';
+import 'books_management_screen.dart';
+import 'ppts_management_screen.dart';
+import 'projects_management_screen.dart';
+import 'assignments_management_screen.dart';
 import 'content_upload_screen.dart';
 
 class ContentManagementScreen extends StatelessWidget {
@@ -26,7 +31,7 @@ class ContentManagementScreen extends StatelessWidget {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => const ContentUploadScreen(contentType: 'notes'),
+                    builder: (context) => const NotesManagementScreen(),
                   ),
                 );
               },
@@ -39,7 +44,7 @@ class ContentManagementScreen extends StatelessWidget {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => const ContentUploadScreen(contentType: 'books'),
+                    builder: (context) => const BooksManagementScreen(),
                   ),
                 );
               },
@@ -65,7 +70,7 @@ class ContentManagementScreen extends StatelessWidget {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => const ContentUploadScreen(contentType: 'ppts'),
+                    builder: (context) => const PPTsManagementScreen(),
                   ),
                 );
               },
@@ -78,7 +83,7 @@ class ContentManagementScreen extends StatelessWidget {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => const ContentUploadScreen(contentType: 'projects'),
+                    builder: (context) => const ProjectsManagementScreen(),
                   ),
                 );
               },
@@ -91,7 +96,7 @@ class ContentManagementScreen extends StatelessWidget {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => const ContentUploadScreen(contentType: 'assignments'),
+                    builder: (context) => const AssignmentsManagementScreen(),
                   ),
                 );
               },

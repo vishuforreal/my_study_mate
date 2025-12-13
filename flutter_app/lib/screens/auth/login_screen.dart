@@ -70,16 +70,24 @@ class _LoginScreenState extends State<LoginScreen> {
                 // Logo
                 Center(
                   child: Container(
-                    width: 100,
-                    height: 100,
                     decoration: BoxDecoration(
-                      color: AppConstants.primaryColor.withOpacity(0.1),
                       borderRadius: BorderRadius.circular(25),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppConstants.primaryColor.withOpacity(0.2),
+                          blurRadius: 20,
+                          spreadRadius: 5,
+                        ),
+                      ],
                     ),
-                    child: const Icon(
-                      Icons.school,
-                      size: 50,
-                      color: AppConstants.primaryColor,
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(25),
+                      child: Image.asset(
+                        'assets/images/logo.png',
+                        width: 100,
+                        height: 100,
+                        fit: BoxFit.contain,
+                      ),
                     ),
                   ),
                 ),
@@ -92,7 +100,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
                 const SizedBox(height: 10),
                 Text(
-                  'Login to continue learning',
+                  'Everything You Need. All in One Place.',
                   style: Theme.of(context).textTheme.bodyMedium,
                   textAlign: TextAlign.center,
                 ),

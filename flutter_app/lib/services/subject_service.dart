@@ -68,4 +68,40 @@ class SubjectService {
       rethrow;
     }
   }
+
+  Future<List<Map<String, dynamic>>> getBooksForSubject(String subjectName) async {
+    try {
+      final response = await _apiService.get('/admin/books/units/$subjectName');
+      if (response['success']) {
+        return List<Map<String, dynamic>>.from(response['units']);
+      }
+      return [];
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<List<Map<String, dynamic>>> getPPTsForSubject(String subjectName) async {
+    try {
+      final response = await _apiService.get('/admin/ppts/subjects/$subjectName');
+      if (response['success']) {
+        return List<Map<String, dynamic>>.from(response['ppts']);
+      }
+      return [];
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<List<Map<String, dynamic>>> getAssignmentsForSubject(String subjectName) async {
+    try {
+      final response = await _apiService.get('/admin/assignments/subjects/$subjectName');
+      if (response['success']) {
+        return List<Map<String, dynamic>>.from(response['assignments']);
+      }
+      return [];
+    } catch (e) {
+      rethrow;
+    }
+  }
 }

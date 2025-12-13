@@ -20,6 +20,10 @@ const bookSchema = new mongoose.Schema({
         required: [true, 'Please provide a subject'],
         trim: true
     },
+    unit: {
+        type: Number,
+        default: 1
+    },
     category: {
         type: String,
         required: [true, 'Please select a category']
@@ -29,7 +33,7 @@ const bookSchema = new mongoose.Schema({
     },
     fileUrl: {
         type: String,
-        required: [true, 'Please upload book file']
+        default: ''
     },
     coverImage: {
         type: String,
