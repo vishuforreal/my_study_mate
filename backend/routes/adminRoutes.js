@@ -22,7 +22,7 @@ router.get('/notes/units/:subjectName', protect, async (req, res) => {
         
         // Filter by subcategory for students
         if (req.user.role === 'student') {
-            query.subcategory = req.user.category;
+            query.subcategory = req.user.subcategory;
         }
         
         // For debugging - show all notes if no filter matches
