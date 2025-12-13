@@ -20,17 +20,30 @@ router.get('/notes/units/:subjectName', protect, async (req, res) => {
     try {
         let query = { subject: req.params.subjectName };
         
-        // If user is student, filter by subcategory since category is ObjectId
+        // Filter by subcategory for students
         if (req.user.role === 'student') {
             query.subcategory = req.user.category;
         }
         
-        console.log('Query for notes:', query);
-        const units = await Note.find(query)
+        // For debugging - show all notes if no filter matches
+        console.log('Units query:', JSON.stringify(query));
+        let allNotes = await Note.find({ subject: req.params.subjectName });
+        console.log('All notes for subject:', allNotes.length);
+        console.log('Notes subcategories:', allNotes.map(n => n.subcategory));
+        
+        let units = await Note.find(query)
             .select('unit title notesFileUrl')
             .sort({ unit: 1 });
         
-        console.log('Found units:', units.length);
+        console.log('Found units with filter:', units.length);
+        
+        // If no units found, show all units for this subject (fallback)
+        if (units.length === 0) {
+            console.log('No filtered units, showing all for subject');
+            units = await Note.find({ subject: req.params.subjectName })
+                .select('unit title notesFileUrl')
+                .sort({ unit: 1 });
+        }
 
         const uniqueUnits = [...new Set(units.map(note => note.unit))]
             .sort((a, b) => parseInt(a) - parseInt(b))
