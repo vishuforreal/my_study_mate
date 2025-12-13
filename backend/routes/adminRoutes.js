@@ -138,15 +138,19 @@ router.get('/notes', async (req, res) => {
 router.get('/notes/units/:subjectName', async (req, res) => {
     try {
         const units = await Note.find({ subject: req.params.subjectName })
-            .select('unit title')
+            .select('unit title notesFileUrl')
             .sort({ unit: 1 });
 
         const uniqueUnits = [...new Set(units.map(note => note.unit))]
             .sort((a, b) => a - b)
-            .map(unit => ({
-                unit,
-                title: units.find(note => note.unit === unit)?.title || `Unit ${unit}`
-            }));
+            .map(unit => {
+                const noteData = units.find(note => note.unit === unit);
+                return {
+                    unit,
+                    title: noteData?.title || `Unit ${unit}`,
+                    pdfUrl: noteData?.notesFileUrl || ''
+                };
+            });
 
         res.status(200).json({
             success: true,

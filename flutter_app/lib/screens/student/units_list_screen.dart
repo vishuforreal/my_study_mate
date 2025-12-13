@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../models/subject_model.dart';
 import '../../services/subject_service.dart';
 
@@ -53,20 +54,73 @@ class _UnitsListScreenState extends State<UnitsListScreen> {
                     return Card(
                       child: ListTile(
                         leading: CircleAvatar(
-                          child: Text('${unit['unit']}'),
+                          backgroundColor: Colors.blue,
+                          child: Text(
+                            '${unit['unit']}',
+                            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                          ),
                         ),
-                        title: Text(unit['title']),
-                        subtitle: const Text('PDF Available'),
-                        trailing: const Icon(Icons.picture_as_pdf, color: Colors.red),
-                        onTap: () {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text('Opening Unit ${unit['unit']} PDF')),
-                          );
-                        },
+                        title: Text(
+                          unit['title'],
+                          style: const TextStyle(fontWeight: FontWeight.w600),
+                        ),
+                        subtitle: Text('Unit ${unit['unit']} • PDF Notes'),
+                        trailing: ElevatedButton(
+                          onPressed: () => _openPDF(unit),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.green,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                          ),
+                          child: const Text('View Notes'),
+                        ),
                       ),
                     );
                   },
                 ),
     );
+  }
+
+  Future<void> _openPDF(Map<String, dynamic> unit) async {
+    try {
+      final pdfUrl = unit['pdfUrl'] ?? '';
+      
+      if (pdfUrl.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('PDF not available')),
+        );
+        return;
+      }
+
+      // Convert Google Drive link to direct view link if needed
+      String finalUrl = pdfUrl;
+      if (pdfUrl.contains('drive.google.com')) {
+        final fileId = _extractGoogleDriveFileId(pdfUrl);
+        if (fileId.isNotEmpty) {
+          finalUrl = 'https://drive.google.com/file/d/$fileId/view';
+        }
+      }
+
+      final Uri url = Uri.parse(finalUrl);
+      if (await canLaunchUrl(url)) {
+        await launchUrl(url, mode: LaunchMode.externalApplication);
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Could not open PDF')),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: $e')),
+      );
+    }
+  }
+
+
+
+  String _extractGoogleDriveFileId(String url) {
+    final regex = RegExp(r'/d/([a-zA-Z0-9-_]+)');
+    final match = regex.firstMatch(url);
+    return match?.group(1) ?? '';
   }
 }
