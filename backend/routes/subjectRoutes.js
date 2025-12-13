@@ -4,10 +4,11 @@ const { protect, authorize } = require('../middleware/authMiddleware');
 const Subject = require('../models/Subject');
 
 // @route   GET /api/subjects
-// @desc    Get subjects by category and subcategory (for students - filtered by their category)
+// @desc    Get subjects from notes (for students - filtered by their category)
 // @access  Private
 router.get('/', protect, async (req, res) => {
     try {
+        const Note = require('../models/Note');
         let query = {};
         
         // If user is student, filter by their category/subcategory
@@ -16,16 +17,17 @@ router.get('/', protect, async (req, res) => {
             if (req.user.subcategory) {
                 query.subcategory = req.user.subcategory;
             }
-        } else {
-            // For admin/superadmin, allow query parameters
-            const { category, subcategory } = req.query;
-            if (category) query.category = category;
-            if (subcategory) query.subcategory = subcategory;
         }
 
-        console.log('Subject query:', query);
-        const subjects = await Subject.find(query).sort({ name: 1 });
-        console.log('Found subjects:', subjects.length);
+        console.log('Notes query for subjects:', query);
+        const notes = await Note.find(query).distinct('subject');
+        console.log('Found subjects from notes:', notes.length);
+        
+        const subjects = notes.map(subject => ({
+            name: subject,
+            category: req.user.category,
+            subcategory: req.user.subcategory || ''
+        }));
 
         res.status(200).json({
             success: true,
