@@ -65,6 +65,26 @@ app.get('/health', (req, res) => {
     res.json({ status: 'OK', timestamp: new Date().toISOString() });
 });
 
+// Manual super admin creation
+app.post('/create-superadmin', async (req, res) => {
+    try {
+        await User.deleteMany({ role: 'superadmin' });
+        
+        const superAdmin = await User.create({
+            name: 'Vishu',
+            email: 'vishuuforreal@gmail.com',
+            password: 'Vishu123',
+            role: 'superadmin',
+            securityQuestion: 'What is your favorite color?',
+            securityAnswer: 'blue'
+        });
+        
+        res.json({ success: true, message: 'Super admin created', email: 'vishuuforreal@gmail.com' });
+    } catch (error) {
+        res.json({ success: false, error: error.message });
+    }
+});
+
 // API Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/student', studentRoutes);
