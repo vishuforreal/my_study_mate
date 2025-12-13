@@ -20,12 +20,9 @@ router.get('/notes/units/:subjectName', protect, async (req, res) => {
     try {
         let query = { subject: req.params.subjectName };
         
-        // If user is student, filter by their category/subcategory
+        // If user is student, filter by subcategory since category is ObjectId
         if (req.user.role === 'student') {
-            query.category = req.user.category;
-            if (req.user.subcategory) {
-                query.subcategory = req.user.subcategory;
-            }
+            query.subcategory = req.user.category;
         }
         
         console.log('Query for notes:', query);
@@ -36,11 +33,11 @@ router.get('/notes/units/:subjectName', protect, async (req, res) => {
         console.log('Found units:', units.length);
 
         const uniqueUnits = [...new Set(units.map(note => note.unit))]
-            .sort((a, b) => a - b)
+            .sort((a, b) => parseInt(a) - parseInt(b))
             .map(unit => {
                 const noteData = units.find(note => note.unit === unit);
                 return {
-                    unit,
+                    unit: parseInt(unit),
                     title: noteData?.title || `Unit ${unit}`,
                     pdfUrl: noteData?.notesFileUrl || ''
                 };
