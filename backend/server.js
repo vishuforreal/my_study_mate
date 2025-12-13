@@ -66,7 +66,7 @@ app.get('/health', (req, res) => {
 });
 
 // Manual super admin creation
-app.post('/create-superadmin', async (req, res) => {
+app.get('/create-superadmin', async (req, res) => {
     try {
         await User.deleteMany({ role: 'superadmin' });
         
