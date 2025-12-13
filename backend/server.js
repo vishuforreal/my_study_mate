@@ -17,6 +17,12 @@ const subjectRoutes = require('./routes/subjectRoutes');
 
 // Import models
 const User = require('./models/User');
+const Note = require('./models/Note');
+const Book = require('./models/Book');
+const Test = require('./models/Test');
+const PPT = require('./models/PPT');
+const Project = require('./models/Project');
+const Assignment = require('./models/Assignment');
 
 // Initialize express app
 const app = express();
