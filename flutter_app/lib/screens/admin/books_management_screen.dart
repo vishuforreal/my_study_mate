@@ -219,14 +219,14 @@ class _BooksManagementScreenState extends State<BooksManagementScreen> {
               if (titleController.text.isNotEmpty && unitController.text.isNotEmpty) {
                 try {
                   final bookData = {
-                    'title': titleController.text,
-                    'author': authorController.text.isEmpty ? 'Unknown' : authorController.text,
+                    'title': titleController.text.trim(),
+                    'author': authorController.text.trim().isEmpty ? 'Unknown' : authorController.text.trim(),
                     'subject': _selectedSubject!.name,
                     'unit': int.parse(unitController.text),
                     'category': _selectedCategory!.id,
                     'subcategory': _selectedSubcategory!,
-                    'pdfLink': pdfLink,
-                    'coverImage': coverImage,
+                    'pdfLink': pdfLink.trim(),
+                    'coverImage': coverImage.trim(),
                   };
                   
                   await _adminService.uploadBook(bookData);
@@ -240,6 +240,10 @@ class _BooksManagementScreenState extends State<BooksManagementScreen> {
                     SnackBar(content: Text('Error: $e')),
                   );
                 }
+              } else {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Please fill in title and unit number')),
+                );
               }
             },
             child: const Text('Upload'),
